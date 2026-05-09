@@ -27,7 +27,7 @@ bun run check-types
 bun run build
 bun pm pack --destination .context/package-smoke
 npm exec --package .context/package-smoke/solid-doctor-0.1.0.tgz -- solid-doctor scan fixtures/valid-solid
-bunx --package .context/package-smoke/solid-doctor-0.1.0.tgz solid-doctor scan fixtures/valid-solid
+bunx --package "$PWD/.context/package-smoke/solid-doctor-0.1.0.tgz" solid-doctor scan fixtures/valid-solid
 ```
 
 The packed scanner should print `Health score: 100/100` for `fixtures/valid-solid`.

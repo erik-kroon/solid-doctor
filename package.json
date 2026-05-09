@@ -6,15 +6,23 @@
   "bin": {
     "solid-doctor": "./dist/cli.js"
   },
+  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "docs/package-release.md",
     "README.md"
   ],
-  "types": "./dist/types/cli.d.ts",
+  "types": "./dist/types/index.d.ts",
   "type": "module",
   "scripts": {
-    "build": "rm -rf dist && bun build src/cli.ts --target node --outfile dist/cli.js && bun x @typescript/native-preview -p tsconfig.build.json",
+    "build": "rm -rf dist && bun build src/cli.ts --target node --outfile dist/cli.js && bun build src/index.ts --target node --outfile dist/index.js && bun x @typescript/native-preview -p tsconfig.build.json",
     "prepack": "bun run build",
     "scan": "bun src/cli.ts scan",
     "test": "bun test test/*.test.ts",

@@ -1,3 +1,5 @@
+import { performance } from "node:perf_hooks";
+
 import { diagnosticFingerprint, type Diagnostic } from "./diagnostics";
 import {
   applyAdoptionFilters,
@@ -17,9 +19,16 @@ export type DoctorReport = {
   project: ProjectProfile;
   diagnostics: Diagnostic[];
   suppressionHints: SuppressionHint[];
+  metadata: DoctorRunMetadata;
   score: number;
   scores: ScoreReport;
   classifierMessages: string[];
+};
+
+export type DoctorRunMetadata = {
+  checkedFiles: number;
+  diagnosticsCount: number;
+  elapsedMilliseconds: number;
 };
 
 export type ScanOptions = {
@@ -33,6 +42,7 @@ export async function scanProject(
   projectRoot: string,
   options: ScanOptions = {},
 ): Promise<DoctorReport> {
+  const startedAt = performance.now();
   const project = await classifyProject(projectRoot);
   const config = await loadSolidDoctorConfig(projectRoot);
 
@@ -52,11 +62,17 @@ export async function scanProject(
   );
   const diagnostics = filterDiagnosticsToChangedLines(unbaselinedDiagnostics, options.changedLines);
   const scores = calculateScore(diagnostics);
+  const metadata = {
+    checkedFiles: sourceFiles.length,
+    diagnosticsCount: diagnostics.length,
+    elapsedMilliseconds: Number((performance.now() - startedAt).toFixed(2)),
+  };
 
   return {
     project,
     diagnostics,
     suppressionHints: adopted.suppressionHints,
+    metadata,
     score: scores.overall,
     scores,
     classifierMessages: options.verbose ? project.classificationSummary : [],

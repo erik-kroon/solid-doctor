@@ -11,6 +11,7 @@ import { loadGitChangedLines, readChangedLinesFile } from "./diff-filter";
 import { projectDoctorReport } from "./report-projection";
 import {
   renderGithubAnnotations,
+  renderJsonError,
   renderJsonReport,
   renderMarkdownReport,
   renderSarifReport,
@@ -126,7 +127,14 @@ try {
     report.diagnostics.length > 0 || (minScore !== null && report.score < minScore) ? 1 : 0,
   );
 } catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (wantsJsonOutput(args)) {
+    console.log(renderJsonError({ code: "scan_failed", message }));
+  } else {
+    console.error(message);
+  }
+
   process.exit(2);
 }
 
@@ -179,6 +187,10 @@ function parseFormat(args: string[]): OutputFormat {
   }
 
   throw new Error("Expected --format to be one of: terminal, json, markdown, sarif, github.");
+}
+
+function wantsJsonOutput(args: string[]): boolean {
+  return valueAfter(args, "--format") === "json";
 }
 
 function parseOptionalNumber(value: string | null, flagName: string): number | null {

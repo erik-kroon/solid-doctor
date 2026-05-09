@@ -1,7 +1,7 @@
 import { diagnosticFingerprint, type Diagnostic } from "./diagnostics";
 import type { SuppressionHint } from "./adoption-config";
 import { findRule } from "./rule-catalog";
-import type { DoctorReport } from "./scan";
+import type { DoctorReport, DoctorRunMetadata } from "./scan";
 import type { ScoreReport } from "./scoring";
 
 export type ReportIssue = Diagnostic & {
@@ -32,6 +32,7 @@ export type ReportProjection = {
     }>;
   };
   score: ScoreReport;
+  metadata: DoctorRunMetadata;
   issues: ReportIssue[];
   suppressionHints: SuppressionHint[];
 };
@@ -53,6 +54,7 @@ export function projectDoctorReport(report: DoctorReport): ReportProjection {
       })),
     },
     score: report.scores,
+    metadata: report.metadata,
     issues: projectIssues(report.diagnostics),
     suppressionHints: report.suppressionHints,
   };

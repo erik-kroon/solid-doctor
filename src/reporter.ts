@@ -37,6 +37,26 @@ export function renderJsonReport(report: DoctorReport): string {
   return `${JSON.stringify(toJsonReport(report), null, 2)}\n`;
 }
 
+export function renderJsonError({
+  code,
+  message,
+}: {
+  code: string;
+  message: string;
+}): string {
+  return `${JSON.stringify(
+    {
+      schemaVersion: 1,
+      error: {
+        code,
+        message,
+      },
+    },
+    null,
+    2,
+  )}\n`;
+}
+
 export function renderMarkdownReport(report: DoctorReport): string {
   const projection = projectDoctorReport(report);
   const lines = [
@@ -107,6 +127,7 @@ function toJsonProjection(projection: ReportProjection) {
     schemaVersion: projection.schemaVersion,
     project: projection.project,
     score: projection.score,
+    metadata: projection.metadata,
     diagnostics: projection.issues,
     suppressionHints: projection.suppressionHints,
   };
