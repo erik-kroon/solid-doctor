@@ -1,6 +1,6 @@
 {
   "name": "solid-doctor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Code health diagnostics for Solid and SolidStart projects.",
   "license": "UNLICENSED",
   "bin": {
