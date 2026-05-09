@@ -20,7 +20,7 @@ Use this map to route future work quickly.
 ## Rule System
 
 - `src/rule-runner.ts`: adapter boundary between raw rule findings and normalized diagnostics.
-- `src/diagnostics.ts`: diagnostic, rule metadata, severity, confidence, and normalization contracts.
+- `src/diagnostics.ts`: diagnostic, rule metadata, category, impact, tags, severity, confidence, and normalization contracts.
 - `src/rules/`: current rule implementations.
 - `src/rules/rule-utils.ts`: shared text/position helpers used by rules.
 - `docs/rule-runner-boundary.md`: durable boundary notes.

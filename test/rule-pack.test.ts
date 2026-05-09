@@ -21,15 +21,45 @@ test("MVP rule pack reports the first Solid-specific rule categories", async () 
     new Set([
       "solid/derived-state-in-effect",
       "solid/async-tracking-gap",
+      "solid/async-no-fetch-in-effect",
       "solid/dynamic-map-in-jsx",
       "solid/browser-global-in-ssr",
     ]),
   );
-  assert.equal(report.diagnostics.length, 4);
+  assert.equal(report.diagnostics.length, 5);
 });
 
 test("MVP rule pack keeps conservative false-positive guards", async () => {
   const report = await scanProject("fixtures/false-positive-mvp-rule-pack");
+
+  assert.deepEqual(report.diagnostics, []);
+  assert.equal(report.score, 100);
+});
+
+test("skill taxonomy rules report the next high-value Solid mistakes", async () => {
+  const report = await scanProject("fixtures/invalid-skill-taxonomy");
+  const ruleIds = report.diagnostics.map((diagnostic) => diagnostic.ruleId);
+
+  assert.deepEqual(
+    new Set(ruleIds),
+    new Set([
+      "solid/async-no-fetch-in-effect",
+      "solid/effect-cleanup-subscriptions",
+      "solid/render-stable-children",
+      "solid/server-request-scoped-state",
+    ]),
+  );
+});
+
+test("skill taxonomy rules keep documented valid patterns quiet", async () => {
+  const report = await scanProject("fixtures/valid-skill-taxonomy");
+
+  assert.deepEqual(report.diagnostics, []);
+  assert.equal(report.score, 100);
+});
+
+test("rule metadata examples are not scanned as executable Solid code", async () => {
+  const report = await scanProject(".");
 
   assert.deepEqual(report.diagnostics, []);
   assert.equal(report.score, 100);

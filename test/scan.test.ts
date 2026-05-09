@@ -25,7 +25,7 @@ test("invalid prop snapshot fixture reports a diagnostic and exits non-zero", as
       const stdout = execError.stdout ?? "";
 
       assert.equal(execError.code, 1);
-      assert.match(stdout, /Health score: 88\/100/);
+      assert.match(stdout, /Health score: 82\/100/);
       assert.match(stdout, /reactivity/);
       assert.match(stdout, /fixtures\/invalid-prop-snapshot\/src\/App.tsx|src\/App.tsx/);
       assert.match(stdout, /Local value 'name' snapshots props.name/);

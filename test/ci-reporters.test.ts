@@ -13,8 +13,9 @@ test("Markdown reporter emits a readable CI summary", async () => {
   const markdown = renderMarkdownReport(report);
 
   assert.match(markdown, /# Solid Doctor Report/);
-  assert.match(markdown, /\| Severity \| Rule \| Location \| Remediation \|/);
+  assert.match(markdown, /\| Severity \| Impact \| Tags \| Rule \| Location \| Remediation \|/);
   assert.match(markdown, /solid\/reactive-prop-snapshot/);
+  assert.match(markdown, /reactive, props, splitProps, mergeProps/);
 });
 
 test("SARIF reporter emits schema-shaped results", async () => {
@@ -24,6 +25,13 @@ test("SARIF reporter emits schema-shaped results", async () => {
   assert.equal(sarif.version, "2.1.0");
   assert.equal(sarif.runs[0].tool.driver.name, "Solid Doctor");
   assert.equal(sarif.runs[0].results[0].ruleId, "solid/reactive-prop-snapshot");
+  assert.equal(sarif.runs[0].results[0].properties.impact, "high");
+  assert.deepEqual(sarif.runs[0].results[0].properties.tags, [
+    "reactive",
+    "props",
+    "splitProps",
+    "mergeProps",
+  ]);
   assert.equal(
     sarif.runs[0].results[0].locations[0].physicalLocation.artifactLocation.uri,
     "src/App.tsx",
@@ -36,7 +44,7 @@ test("GitHub annotation output includes file, line, severity, title, and remedia
 
   assert.match(
     annotations,
-    /^::warning file=src\/App\.tsx,line=6,col=3,title=solid\/reactive-prop-snapshot:/,
+    /^::warning file=src\/App\.tsx,line=6,col=3,title=solid\/reactive-prop-snapshot \[high\]:/,
   );
   assert.match(annotations, /Read props\.name inside JSX/);
 });

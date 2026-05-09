@@ -11,6 +11,9 @@
     "test": "bun test test/*.test.ts",
     "check-types": "bun x @typescript/native-preview --noEmit"
   },
+  "dependencies": {
+    "solid-js": "^1.9.9"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "@typescript/native-preview": "^7.0.0-dev.20260508.1"

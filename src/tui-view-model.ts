@@ -1,4 +1,4 @@
-import type { Category, Confidence, Diagnostic, Severity } from "./diagnostics";
+import type { Category, Confidence, Diagnostic, Impact, Severity } from "./diagnostics";
 import { projectIssue, type ReportIssue } from "./report-projection";
 import type { ScoreReport } from "./scoring";
 
@@ -14,6 +14,8 @@ export type IssueFilters = {
   filePath?: string;
   confidence?: Confidence;
   fixable?: boolean;
+  impact?: Impact;
+  tag?: string;
 };
 
 export type IssueViewModel = {
@@ -21,6 +23,9 @@ export type IssueViewModel = {
   severity: Severity;
   category: Category;
   confidence: Confidence;
+  impact: Impact;
+  impactDescription: string;
+  tags: string[];
   filePath: string;
   line: number;
   column: number;
@@ -70,6 +75,8 @@ function matchesFilters(diagnostic: IssueViewModel, filters: IssueFilters): bool
     (!filters.ruleId || diagnostic.ruleId === filters.ruleId) &&
     (!filters.filePath || diagnostic.filePath === filters.filePath) &&
     (!filters.confidence || diagnostic.confidence === filters.confidence) &&
+    (!filters.impact || diagnostic.impact === filters.impact) &&
+    (!filters.tag || diagnostic.tags.includes(filters.tag)) &&
     (filters.fixable === undefined || diagnostic.fixable === filters.fixable)
   );
 }
@@ -84,6 +91,9 @@ function toIssueViewModel(issue: ReportIssue): IssueViewModel {
     severity: issue.severity,
     category: issue.category,
     confidence: issue.confidence,
+    impact: issue.impact,
+    impactDescription: issue.impactDescription,
+    tags: issue.tags,
     filePath: issue.filePath,
     line: issue.line,
     column: issue.column,

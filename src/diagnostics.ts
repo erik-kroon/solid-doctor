@@ -1,6 +1,12 @@
 export const CATEGORIES = {
+  async: "async",
+  bundle: "bundle",
+  server: "server",
   reactivity: "reactivity",
-  ssr: "ssr",
+  render: "render",
+  effect: "effect",
+  js: "js",
+  advanced: "advanced",
 } as const;
 
 export const SEVERITIES = {
@@ -14,14 +20,27 @@ export const CONFIDENCE = {
   low: "low",
 } as const;
 
+export const IMPACTS = {
+  critical: "critical",
+  high: "high",
+  mediumHigh: "medium-high",
+  medium: "medium",
+  lowMedium: "low-medium",
+  low: "low",
+} as const;
+
 export type Category = (typeof CATEGORIES)[keyof typeof CATEGORIES];
 export type Severity = (typeof SEVERITIES)[keyof typeof SEVERITIES];
 export type Confidence = (typeof CONFIDENCE)[keyof typeof CONFIDENCE];
+export type Impact = (typeof IMPACTS)[keyof typeof IMPACTS];
 
 export type RuleMetadata = {
   category: Category;
   defaultSeverity: Severity;
   confidence: Confidence;
+  impact: Impact;
+  impactDescription: string;
+  tags: string[];
   docsSlug: string;
   description: string;
   why: string;
@@ -62,6 +81,9 @@ export type Diagnostic = {
   category: Category;
   severity: Severity;
   confidence: Confidence;
+  impact: Impact;
+  impactDescription: string;
+  tags: string[];
   docsSlug: string;
   filePath: string;
   line: number;
@@ -86,6 +108,9 @@ export function normalizeFinding({
     category: rule.meta.category,
     severity: finding.severity ?? rule.meta.defaultSeverity,
     confidence: finding.confidence ?? rule.meta.confidence,
+    impact: rule.meta.impact,
+    impactDescription: rule.meta.impactDescription,
+    tags: rule.meta.tags,
     docsSlug: rule.meta.docsSlug,
     filePath: context.relativeFilePath,
     line: finding.line,

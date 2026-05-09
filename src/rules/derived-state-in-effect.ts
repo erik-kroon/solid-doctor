@@ -7,6 +7,9 @@ export const derivedStateInEffectRule: RunnableRule = {
     category: CATEGORIES.reactivity,
     defaultSeverity: SEVERITIES.warning,
     confidence: CONFIDENCE.medium,
+    impact: "high",
+    impactDescription: "avoids redundant updates and state drift",
+    tags: ["reactive", "effects", "createMemo", "derived-state"],
     docsSlug: "derived-state-in-effect",
     description:
       "Detects effects that mirror reactive inputs into another signal as derived state.",

@@ -21,6 +21,10 @@ export function findCallBodyBlocks(source: string, callee: string): CallBodyBloc
   let match;
 
   while ((match = pattern.exec(source))) {
+    if (isIndexInsideStringLiteral(source, match.index)) {
+      continue;
+    }
+
     const openBrace = source.indexOf("{", pattern.lastIndex);
 
     if (openBrace === -1) {
@@ -44,6 +48,39 @@ export function findCallBodyBlocks(source: string, callee: string): CallBodyBloc
   }
 
   return blocks;
+}
+
+export function isIndexInsideStringLiteral(source: string, targetIndex: number): boolean {
+  let quote: "'" | '"' | "`" | null = null;
+  let escaped = false;
+
+  for (let index = 0; index < targetIndex; index += 1) {
+    const character = source[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (character === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (quote) {
+      if (character === quote) {
+        quote = null;
+      }
+
+      continue;
+    }
+
+    if (character === "'" || character === '"' || character === "`") {
+      quote = character;
+    }
+  }
+
+  return quote !== null;
 }
 
 export function findSignalGetters(source: string): Set<string> {
