@@ -36,6 +36,11 @@ test("package entrypoint declares runtime and type exports", async () => {
   assert.equal(packageJson.types, "./dist/types/index.d.ts");
   assert.equal(packageJson.exports["."].import, "./dist/index.js");
   assert.equal(packageJson.exports["."].types, "./dist/types/index.d.ts");
+  assert.equal(packageJson.exports["./oxlint-plugin"].import, "./dist/oxlint-plugin.js");
+  assert.equal(
+    packageJson.exports["./oxlint-plugin"].types,
+    "./dist/types/oxlint-plugin.d.ts",
+  );
 });
 
 test("JSON report includes stable metadata fields", async () => {

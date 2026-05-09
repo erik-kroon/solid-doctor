@@ -1,0 +1,6 @@
+{
+  "jsPlugins": ["../../dist/oxlint-plugin.js"],
+  "rules": {
+    "solid-doctor/reactive-prop-snapshot": "error"
+  }
+}

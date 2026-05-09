@@ -13,9 +13,11 @@ export async function diagnose(
 }
 
 export { projectDoctorReport };
+export { oxlintRuleName, OXLINT_COMPATIBLE_RULES } from "./oxlint-plugin";
 export type { Diagnostic, DiagnosticFix, RuleMetadata, Severity } from "./diagnostics";
 export type { ProjectProfile, PackageProfile } from "./project-classifier";
 export type { ReportIssue, ReportProjection } from "./report-projection";
 export type { DoctorReport, DoctorRunMetadata, ScanOptions } from "./scan";
 export type { ScoreReport } from "./scoring";
 export type { SuppressionHint } from "./adoption-config";
+export type { OxlintPlugin } from "./oxlint-plugin";

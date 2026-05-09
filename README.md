@@ -198,6 +198,8 @@ solid-doctor explain suppression
 solid-doctor install-agents . --target all --dry-run
 ```
 
+Oxlint plugin usage is documented in [docs/oxlint-plugin.md](docs/oxlint-plugin.md).
+
 Optional TUI surface for source checkouts:
 
 ```bash
@@ -279,6 +281,7 @@ For product shape, start with:
 - [docs/reactive-models.md](docs/reactive-models.md): shared reactive source, read, and tracking models.
 - [docs/package-release.md](docs/package-release.md): package publishing checklist and source-release boundary.
 - [docs/github-action.md](docs/github-action.md): GitHub Action usage, inputs, outputs, and PR comment behavior.
+- [docs/oxlint-plugin.md](docs/oxlint-plugin.md): Oxlint JS plugin-compatible rule surface.
 
 For engineering signal, the highest-value areas are:
 
