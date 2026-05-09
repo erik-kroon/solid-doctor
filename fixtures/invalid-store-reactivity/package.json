@@ -1,0 +1,6 @@
+{
+  "name": "invalid-store-reactivity-fixture",
+  "dependencies": {
+    "solid-js": "^1.9.0"
+  }
+}

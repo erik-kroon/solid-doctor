@@ -147,11 +147,11 @@ function parseRulePack(args: string[]): RulePack {
 
   const value = args[flagIndex + 1];
 
-  if (value === "mvp" || value === "none") {
+  if (value === "mvp" || value === "reactivity" || value === "none") {
     return value;
   }
 
-  throw new Error("Expected --rules to be either 'mvp' or 'none'.");
+  throw new Error("Expected --rules to be one of: mvp, reactivity, none.");
 }
 
 async function parseScanOptions(targetRoot: string, args: string[]) {

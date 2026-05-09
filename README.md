@@ -47,6 +47,10 @@ The current MVP rule pack detects:
 - `solid/server-request-scoped-state`: request-scoped mutable module state in SSR-capable files.
 - `solid/effect-cleanup-subscriptions`: subscriptions, listeners, timers, observers, or roots without cleanup.
 
+Additional selectable rule packs:
+
+- `--rules reactivity`: includes the MVP reactivity rules plus `solid/store-destructure-snapshot` for Solid store destructuring snapshots.
+
 The rules are intentionally conservative. A diagnostic should point to a likely Solid correctness, SSR, lifecycle, or maintainability risk, not a formatting preference.
 
 ## Example

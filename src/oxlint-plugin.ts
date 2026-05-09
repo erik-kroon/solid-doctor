@@ -10,6 +10,7 @@ import { analyzeTrackingScopes } from "./tracking-scope-model";
 
 const OXLINT_COMPATIBLE_RULE_IDS = new Set([
   "solid/reactive-prop-snapshot",
+  "solid/store-destructure-snapshot",
   "solid/derived-state-in-effect",
   "solid/async-tracking-gap",
   "solid/async-no-fetch-in-effect",

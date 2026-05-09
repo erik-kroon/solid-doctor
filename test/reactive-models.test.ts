@@ -76,6 +76,26 @@ test("reactive read model answers region and JSX list source questions", () => {
   );
 });
 
+test("reactive read model tracks store destructuring snapshots used in JSX", () => {
+  const source = `
+    import { createStore } from "solid-js/store";
+
+    export function Profile() {
+      const [state] = createStore({ profile: { name: "Ada" } });
+      const { profile } = state;
+      return <h1>{profile.name}</h1>;
+    }
+  `;
+  const reactiveSources = analyzeReactiveSources(source);
+  const trackingScopes = analyzeTrackingScopes(source, reactiveSources);
+  const reads = analyzeReactiveReads({ source, reactiveSources, trackingScopes });
+
+  assert.deepEqual(
+    reads.storeSnapshotsUsedInReturnedJsx().map((snapshot) => snapshot.localName),
+    ["profile"],
+  );
+});
+
 test("tracking scope model exposes effects, resources, memos, mounts, and async regions", () => {
   const source = `
     import { createEffect as fx, createMemo, createResource, onMount as mounted } from "solid-js";

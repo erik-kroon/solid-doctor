@@ -8,9 +8,10 @@ import { effectCleanupSubscriptionsRule } from "./rules/effect-cleanup-subscript
 import { reactivePropSnapshotRule } from "./rules/reactive-prop-snapshot";
 import { renderStableChildrenRule } from "./rules/render-stable-children";
 import { serverRequestScopedStateRule } from "./rules/server-request-scoped-state";
+import { storeDestructureSnapshotRule } from "./rules/store-destructure-snapshot";
 import type { RuleContext } from "./rule-runner";
 
-export type RulePack = "mvp" | "none";
+export type RulePack = "mvp" | "reactivity" | "none";
 
 export type RunnableRule = RuleDefinition & {
   check(context: RuleContext): Promise<RawFinding[]> | RawFinding[];
@@ -28,19 +29,38 @@ export const MVP_RULES = [
   effectCleanupSubscriptionsRule,
 ];
 
+export const REACTIVITY_RULES = [
+  reactivePropSnapshotRule,
+  storeDestructureSnapshotRule,
+  derivedStateInEffectRule,
+  asyncTrackingGapRule,
+  dynamicMapInJsxRule,
+];
+
+const ALL_RULES = [
+  ...new Map([...MVP_RULES, storeDestructureSnapshotRule].map((rule) => [rule.id, rule])).values(),
+];
+
 export function getRules(rulePack: RulePack = "mvp"): RunnableRule[] {
-  return rulePack === "none" ? [] : MVP_RULES;
+  switch (rulePack) {
+    case "none":
+      return [];
+    case "reactivity":
+      return REACTIVITY_RULES;
+    case "mvp":
+      return MVP_RULES;
+  }
 }
 
 export function findRule(ruleIdOrSlug: string): RunnableRule | null {
   return (
-    MVP_RULES.find((rule) => rule.id === ruleIdOrSlug || rule.meta.docsSlug === ruleIdOrSlug) ??
+    ALL_RULES.find((rule) => rule.id === ruleIdOrSlug || rule.meta.docsSlug === ruleIdOrSlug) ??
     null
   );
 }
 
 export function assertRuleMetadataComplete(): void {
-  for (const rule of getRules()) {
+  for (const rule of ALL_RULES) {
     const fields = [
       rule.meta.description,
       rule.meta.why,

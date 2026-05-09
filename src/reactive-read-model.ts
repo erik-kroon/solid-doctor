@@ -37,17 +37,28 @@ export type PropSnapshot = {
   column: number;
 };
 
+export type StoreSnapshot = {
+  localName: string;
+  propertyName: string;
+  sourceName: string;
+  index: number;
+  line: number;
+  column: number;
+};
+
 export type ReactiveReadModel = {
   reads: ReactiveRead[];
   signalWrites: SignalWrite[];
   jsxListSources: JsxListSource[];
   propSnapshots: PropSnapshot[];
+  storeSnapshots: StoreSnapshot[];
   readsInRegion(region: { bodyStart: number; end: number }): ReactiveRead[];
   writesInRegion(region: { bodyStart: number; end: number }): SignalWrite[];
   readsAfterAwait(scope: TrackingScope): ReactiveRead[];
   hasReadInRegion(region: { bodyStart: number; end: number }): boolean;
   reactiveJsxListSources(): JsxListSource[];
   propSnapshotsUsedInReturnedJsx(): PropSnapshot[];
+  storeSnapshotsUsedInReturnedJsx(): StoreSnapshot[];
   isIndexTracked(index: number): boolean;
   isIndexPostAwait(index: number): boolean;
   isIndexInsideMount(index: number): boolean;
@@ -66,12 +77,14 @@ export function analyzeReactiveReads({
   const signalWrites = findSignalWrites(source, reactiveSources);
   const jsxListSources = findJsxListSources(source, reactiveSources);
   const propSnapshots = findPropSnapshots(source, reactiveSources);
+  const storeSnapshots = findStoreSnapshots(source, reactiveSources);
 
   return {
     reads,
     signalWrites,
     jsxListSources,
     propSnapshots,
+    storeSnapshots,
     readsInRegion(region) {
       return reads.filter((read) => isInsideRegion(read.index, region));
     },
@@ -95,6 +108,9 @@ export function analyzeReactiveReads({
     },
     propSnapshotsUsedInReturnedJsx() {
       return propSnapshots.filter((snapshot) => isUsedInReturnedJsx(source, snapshot));
+    },
+    storeSnapshotsUsedInReturnedJsx() {
+      return storeSnapshots.filter((snapshot) => isUsedInReturnedJsx(source, snapshot));
     },
     isIndexTracked(index) {
       return trackingScopes.scopes.some((scope) => isInsideRegion(index, scope));
@@ -276,6 +292,50 @@ function findPropSnapshots(source: string, reactiveSources: ReactiveSourceModel)
   return snapshots;
 }
 
+function findStoreSnapshots(source: string, reactiveSources: ReactiveSourceModel): StoreSnapshot[] {
+  const storePattern = [...reactiveSources.stores].map(escapeRegExp).join("|");
+
+  if (!storePattern) {
+    return [];
+  }
+
+  const snapshots: StoreSnapshot[] = [];
+  const pattern = new RegExp(
+    `\\b(?:const|let|var)\\s*\\{([^}]+)\\}\\s*=\\s*(${storePattern})\\b`,
+    "g",
+  );
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(source))) {
+    const destructured = match[1];
+    const sourceName = match[2];
+
+    if (!destructured || !sourceName) {
+      continue;
+    }
+
+    for (const part of destructured.split(",")) {
+      const [property, local] = part.trim().split(/\s*:\s*/);
+      const propertyName = property?.trim();
+      const localName = (local ?? property)?.trim();
+
+      if (!propertyName || !localName || /[{}\s]/.test(propertyName + localName)) {
+        continue;
+      }
+
+      snapshots.push({
+        localName,
+        propertyName,
+        sourceName,
+        index: match.index,
+        ...positionAt(source, match.index),
+      });
+    }
+  }
+
+  return snapshots;
+}
+
 function isReactiveMapExpression(
   expression: string,
   reactiveSources: ReactiveSourceModel,
@@ -307,7 +367,7 @@ function isReactiveMapExpression(
   return false;
 }
 
-function isUsedInReturnedJsx(source: string, snapshot: PropSnapshot): boolean {
+function isUsedInReturnedJsx(source: string, snapshot: { localName: string; index: number }): boolean {
   const afterSnapshot = source.slice(snapshot.index);
   const returnIndex = afterSnapshot.search(/\breturn\s*(?:\(|<)/);
 

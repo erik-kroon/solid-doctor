@@ -78,6 +78,56 @@ test("MVP rule pack can be disabled as one group", async () => {
   assert.match(stdout, /No Solid-specific diagnostics found/);
 });
 
+test("reactivity rule pack adds store destructuring diagnostics", async () => {
+  const report = await scanProject("fixtures/invalid-store-reactivity", {
+    rulePack: "reactivity",
+  });
+
+  assert.deepEqual(
+    report.diagnostics.map((diagnostic) => diagnostic.ruleId),
+    ["solid/store-destructure-snapshot"],
+  );
+});
+
+test("store destructuring rule keeps direct store reads quiet", async () => {
+  const report = await scanProject("fixtures/false-positive-store-reactivity", {
+    rulePack: "reactivity",
+  });
+
+  assert.deepEqual(report.diagnostics, []);
+});
+
+test("expanded rules can be selected from the CLI", async () => {
+  const { stdout } = await execFileAsync("bun", [
+    "src/cli.ts",
+    "scan",
+    "fixtures/invalid-store-reactivity",
+    "--rules",
+    "reactivity",
+    "--format",
+    "json",
+  ]).catch((error: RejectedExecFileError) => ({ stdout: error.stdout ?? "" }));
+  const report = JSON.parse(stdout);
+
+  assert.equal(report.diagnostics[0].ruleId, "solid/store-destructure-snapshot");
+});
+
+test("expanded rules can be disabled through config", async () => {
+  const { stdout } = await execFileAsync("bun", [
+    "src/cli.ts",
+    "scan",
+    "fixtures/config-store-reactivity",
+    "--rules",
+    "reactivity",
+    "--format",
+    "json",
+  ]);
+  const report = JSON.parse(stdout);
+
+  assert.deepEqual(report.diagnostics, []);
+  assert.equal(report.score.overall, 100);
+});
+
 test("MVP rule pack diagnostics use Solid-native guidance", async () => {
   await assert.rejects(
     execFileAsync("bun", ["src/cli.ts", "scan", "fixtures/invalid-mvp-rule-pack"]),
