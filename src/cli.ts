@@ -7,7 +7,7 @@ import { join, resolve } from "node:path";
 
 import { type AgentTarget, installAgentInstructions } from "./agent-installer";
 import { readBaseline, writeBaseline } from "./baseline";
-import { loadGitChangedLines, readChangedLinesFile } from "./diff-filter";
+import { loadGitChangedLines, loadGitStagedFiles, readChangedLinesFile } from "./diff-filter";
 import { projectDoctorReport } from "./report-projection";
 import {
   renderGithubAnnotations,
@@ -100,7 +100,7 @@ if ((command !== "scan" && command !== "check") || !targetArg) {
 
 function printUsageAndExit(): never {
   console.error(
-    "Usage: solid-doctor scan <project> [--rules mvp|none] [--format terminal|json|markdown|sarif|github] [--baseline file] [--write-baseline file] [--diff base] [--changed-lines file] [--min-score number] [--verbose]",
+    "Usage: solid-doctor scan <project> [--rules mvp|none] [--format terminal|json|markdown|sarif|github] [--project name-or-path] [--staged] [--baseline file] [--write-baseline file] [--diff base] [--changed-lines file] [--min-score number] [--verbose]",
   );
   console.error("       solid-doctor check <project> [scan options]");
   console.error("       solid-doctor doctor <project> [scan options]");
@@ -162,13 +162,24 @@ async function parseScanOptions(targetRoot: string, args: string[]) {
   return {
     rulePack: parseRulePack(args),
     verbose: args.includes("--verbose"),
+    selectedProjects: parseProjectSelections(args),
     baselineFingerprints: baselinePath ? await readBaseline(resolve(baselinePath)) : undefined,
+    changedFiles: args.includes("--staged") ? await loadGitStagedFiles(targetRoot) : undefined,
     changedLines: changedLinesPath
       ? await readChangedLinesFile(resolve(changedLinesPath))
       : diffBase
         ? await loadGitChangedLines(diffBase, targetRoot)
         : undefined,
   };
+}
+
+function parseProjectSelections(args: string[]): string[] {
+  return valuesAfter(args, "--project").flatMap((value) =>
+    value
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean),
+  );
 }
 
 type OutputFormat = "terminal" | "json" | "markdown" | "sarif" | "github";
@@ -215,6 +226,24 @@ function valueAfter(args: string[], flagName: string): string | null {
   }
 
   return args[flagIndex + 1] ?? null;
+}
+
+function valuesAfter(args: string[], flagName: string): string[] {
+  const values: string[] = [];
+
+  for (let index = 0; index < args.length; index += 1) {
+    if (args[index] !== flagName) {
+      continue;
+    }
+
+    const value = args[index + 1];
+
+    if (value) {
+      values.push(value);
+    }
+  }
+
+  return values;
 }
 
 function parseAgentTarget(args: string[]): AgentTarget {

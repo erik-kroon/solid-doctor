@@ -159,6 +159,8 @@ Incremental adoption and CI:
 
 ```bash
 solid-doctor scan . --ci --diff main --min-score 80
+solid-doctor scan . --project apps/web --project @scope/ui
+solid-doctor scan . --staged
 solid-doctor scan . --write-baseline solid-doctor-baseline.json
 solid-doctor scan . --baseline solid-doctor-baseline.json
 solid-doctor scan . --changed-lines changed-lines.txt

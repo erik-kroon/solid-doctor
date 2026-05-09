@@ -9,7 +9,7 @@ Top-level fields:
 - `schemaVersion`: JSON report schema version.
 - `project`: serializable project profile summary.
 - `score`: overall score and category subscores.
-- `metadata`: scan metadata including checked file count, diagnostic count, and elapsed milliseconds.
+- `metadata`: scan metadata including checked file count, diagnostic count, elapsed milliseconds, and selected workspace project summaries.
 - `diagnostics`: normalized diagnostics projected through the report projection module with stable fingerprints, locations, rule metadata, impact, tags, and issue-facing fields for reporters and TUI views.
 - `suppressionHints`: unused or unknown inline suppressions that did not suppress a diagnostic.
 

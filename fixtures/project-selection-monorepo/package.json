@@ -1,0 +1,7 @@
+{
+  "name": "project-selection-monorepo",
+  "workspaces": ["apps/*", "packages/*"],
+  "devDependencies": {
+    "solid-js": "latest"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "@fixture/selection-web",
+  "dependencies": {
+    "solid-js": "latest",
+    "vite-plugin-solid": "latest"
+  }
+}

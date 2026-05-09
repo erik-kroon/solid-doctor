@@ -7,6 +7,7 @@ import type { Diagnostic } from "./diagnostics";
 const execFileAsync = promisify(execFile);
 
 export type ChangedLines = Map<string, Set<number>>;
+export type ChangedFiles = Set<string>;
 
 export function filterDiagnosticsToChangedLines(
   diagnostics: Diagnostic[],
@@ -57,6 +58,29 @@ export async function loadGitChangedLines(
     "--",
   ]);
   return parseGitDiffChangedLines(stdout);
+}
+
+export async function loadGitStagedFiles(projectRoot: string): Promise<ChangedFiles> {
+  const { stdout } = await execFileAsync("git", [
+    "-C",
+    projectRoot,
+    "diff",
+    "--cached",
+    "--name-only",
+    "--diff-filter=ACMR",
+    "--",
+  ]);
+
+  return parseGitChangedFiles(stdout);
+}
+
+export function parseGitChangedFiles(output: string): ChangedFiles {
+  return new Set(
+    output
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean),
+  );
 }
 
 export function parseGitDiffChangedLines(diff: string): ChangedLines {

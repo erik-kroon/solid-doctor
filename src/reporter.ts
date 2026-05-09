@@ -9,6 +9,8 @@ export function renderTerminalReport(report: DoctorReport): string {
     `Health score: ${projection.score.overall}/100`,
   ];
 
+  appendSelectedProjects(lines, projection.metadata.selectedProjects);
+
   if (projection.issues.length === 0) {
     lines.push("", "No Solid-specific diagnostics found.");
     appendSuppressionHints(lines, projection.suppressionHints);
@@ -115,6 +117,21 @@ function appendClassifierMessages(lines: string[], messages: string[]): void {
 
   lines.push("", "Classifier:");
   lines.push(...messages);
+}
+
+function appendSelectedProjects(
+  lines: string[],
+  selectedProjects: ReportProjection["metadata"]["selectedProjects"],
+): void {
+  if (selectedProjects.length === 0) {
+    return;
+  }
+
+  lines.push(
+    `Selected projects: ${selectedProjects
+      .map((project) => project.packageName ?? project.relativeRoot)
+      .join(", ")}`,
+  );
 }
 
 function toJsonReport(report: DoctorReport) {

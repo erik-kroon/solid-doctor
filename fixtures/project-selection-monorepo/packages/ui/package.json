@@ -1,0 +1,9 @@
+{
+  "name": "@fixture/selection-ui",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "peerDependencies": {
+    "solid-js": "latest"
+  }
+}

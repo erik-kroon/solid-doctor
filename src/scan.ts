@@ -8,6 +8,7 @@ import {
   type SuppressionHint,
 } from "./adoption-config";
 import type { ChangedLines } from "./diff-filter";
+import type { ChangedFiles } from "./diff-filter";
 import { filterDiagnosticsToChangedLines } from "./diff-filter";
 import { collectAnalyzableProjectFiles } from "./project-file-set";
 import { classifyProject, type ProjectProfile } from "./project-classifier";
@@ -29,6 +30,14 @@ export type DoctorRunMetadata = {
   checkedFiles: number;
   diagnosticsCount: number;
   elapsedMilliseconds: number;
+  selectedProjects: SelectedProjectMetadata[];
+};
+
+export type SelectedProjectMetadata = {
+  relativeRoot: string;
+  packageName: string | null;
+  checkedFiles: number;
+  diagnosticsCount: number;
 };
 
 export type ScanOptions = {
@@ -36,6 +45,8 @@ export type ScanOptions = {
   verbose?: boolean;
   baselineFingerprints?: Set<string>;
   changedLines?: ChangedLines;
+  changedFiles?: ChangedFiles;
+  selectedProjects?: string[];
 };
 
 export async function scanProject(
@@ -50,7 +61,15 @@ export async function scanProject(
     throw new Error("Solid Doctor only scans projects with a solid-js dependency.");
   }
 
-  const sourceFiles = await collectAnalyzableProjectFiles(project, { config });
+  const selectedProjects = resolveSelectedProjects(project, options.selectedProjects ?? []);
+  const selectedProjectRoots = new Set(
+    selectedProjects.map((selectedProject) => selectedProject.relativeRoot),
+  );
+  const sourceFiles = await collectAnalyzableProjectFiles(project, {
+    config,
+    selectedProjectRoots,
+    changedFiles: options.changedFiles,
+  });
   const rawDiagnostics = await runRules({ project, sourceFiles, rulePack: options.rulePack });
   const adopted = applyAdoptionFilters({
     diagnostics: rawDiagnostics,
@@ -66,6 +85,16 @@ export async function scanProject(
     checkedFiles: sourceFiles.length,
     diagnosticsCount: diagnostics.length,
     elapsedMilliseconds: Number((performance.now() - startedAt).toFixed(2)),
+    selectedProjects: selectedProjects.map((selectedProject) => ({
+      relativeRoot: selectedProject.relativeRoot,
+      packageName: selectedProject.packageName,
+      checkedFiles: sourceFiles.filter((sourceFile) =>
+        sourceFile.relativeFilePath.startsWith(`${selectedProject.relativeRoot}/`),
+      ).length,
+      diagnosticsCount: diagnostics.filter((diagnostic) =>
+        diagnostic.filePath.startsWith(`${selectedProject.relativeRoot}/`),
+      ).length,
+    })),
   };
 
   return {
@@ -77,4 +106,26 @@ export async function scanProject(
     scores,
     classifierMessages: options.verbose ? project.classificationSummary : [],
   };
+}
+
+function resolveSelectedProjects(
+  project: ProjectProfile,
+  selectedProjects: string[],
+): ProjectProfile["packages"] {
+  if (selectedProjects.length === 0) {
+    return [];
+  }
+
+  return selectedProjects.map((selection) => {
+    const match = project.packages.find(
+      (packageProfile) =>
+        packageProfile.relativeRoot === selection || packageProfile.packageName === selection,
+    );
+
+    if (!match) {
+      throw new Error(`Unknown project selection '${selection}'.`);
+    }
+
+    return match;
+  });
 }
