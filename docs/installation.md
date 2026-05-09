@@ -1,6 +1,6 @@
 # Installation
 
-Solid Doctor is prepared as the `solid-doctor` npm package.
+Solid Doctor is available as the `solid-doctor` npm package.
 
 ```bash
 npm install --save-dev solid-doctor
@@ -13,8 +13,6 @@ With Bun:
 bun add --dev solid-doctor
 bunx solid-doctor scan .
 ```
-
-Until the first npm publish, use the packed tarball smoke path from [package-release.md](package-release.md).
 
 ## Common Commands
 

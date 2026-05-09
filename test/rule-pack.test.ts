@@ -12,8 +12,8 @@ type RejectedExecFileError = Error & {
   stdout?: string;
 };
 
-test("MVP rule pack reports the first Solid-specific rule categories", async () => {
-  const report = await scanProject("fixtures/invalid-mvp-rule-pack");
+test("core rule pack reports the first Solid-specific rule categories", async () => {
+  const report = await scanProject("fixtures/invalid-core-rule-pack");
   const ruleIds = report.diagnostics.map((diagnostic) => diagnostic.ruleId);
 
   assert.deepEqual(
@@ -29,8 +29,8 @@ test("MVP rule pack reports the first Solid-specific rule categories", async () 
   assert.equal(report.diagnostics.length, 5);
 });
 
-test("MVP rule pack keeps conservative false-positive guards", async () => {
-  const report = await scanProject("fixtures/false-positive-mvp-rule-pack");
+test("core rule pack keeps conservative false-positive guards", async () => {
+  const report = await scanProject("fixtures/false-positive-core-rule-pack");
 
   assert.deepEqual(report.diagnostics, []);
   assert.equal(report.score, 100);
@@ -65,11 +65,11 @@ test("rule metadata examples are not scanned as executable Solid code", async ()
   assert.equal(report.score, 100);
 });
 
-test("MVP rule pack can be disabled as one group", async () => {
+test("core rule pack can be disabled as one group", async () => {
   const { stdout } = await execFileAsync("bun", [
     "src/cli.ts",
     "scan",
-    "fixtures/invalid-mvp-rule-pack",
+    "fixtures/invalid-core-rule-pack",
     "--rules",
     "none",
   ]);
@@ -128,9 +128,9 @@ test("expanded rules can be disabled through config", async () => {
   assert.equal(report.score.overall, 100);
 });
 
-test("MVP rule pack diagnostics use Solid-native guidance", async () => {
+test("core rule pack diagnostics use Solid-native guidance", async () => {
   await assert.rejects(
-    execFileAsync("bun", ["src/cli.ts", "scan", "fixtures/invalid-mvp-rule-pack"]),
+    execFileAsync("bun", ["src/cli.ts", "scan", "fixtures/invalid-core-rule-pack"]),
     (error) => {
       const execError = error as RejectedExecFileError;
       const stdout = execError.stdout ?? "";

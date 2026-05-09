@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "bun:test";
 
-import { MVP_RULES, REACTIVITY_RULES } from "../src/rule-catalog";
+import { CORE_RULES, REACTIVITY_RULES } from "../src/rule-catalog";
 
 test("README links to external adoption docs", async () => {
   const readme = await readFile("README.md", "utf8");
@@ -20,7 +20,7 @@ test("README links to external adoption docs", async () => {
 
 test("rule reference covers each shipped rule with examples and suppression guidance", async () => {
   const docs = await readFile("docs/rule-reference.md", "utf8");
-  const rules = [...new Map([...MVP_RULES, ...REACTIVITY_RULES].map((rule) => [rule.id, rule])).values()];
+  const rules = [...new Map([...CORE_RULES, ...REACTIVITY_RULES].map((rule) => [rule.id, rule])).values()];
 
   for (const rule of rules) {
     assert.match(docs, new RegExp(rule.id.replace("/", "\\/")));

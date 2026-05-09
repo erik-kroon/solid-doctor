@@ -11,13 +11,13 @@ import { serverRequestScopedStateRule } from "./rules/server-request-scoped-stat
 import { storeDestructureSnapshotRule } from "./rules/store-destructure-snapshot";
 import type { RuleContext } from "./rule-runner";
 
-export type RulePack = "mvp" | "reactivity" | "none";
+export type RulePack = "core" | "reactivity" | "none";
 
 export type RunnableRule = RuleDefinition & {
   check(context: RuleContext): Promise<RawFinding[]> | RawFinding[];
 };
 
-export const MVP_RULES = [
+export const CORE_RULES = [
   reactivePropSnapshotRule,
   derivedStateInEffectRule,
   asyncTrackingGapRule,
@@ -38,17 +38,17 @@ export const REACTIVITY_RULES = [
 ];
 
 const ALL_RULES = [
-  ...new Map([...MVP_RULES, storeDestructureSnapshotRule].map((rule) => [rule.id, rule])).values(),
+  ...new Map([...CORE_RULES, storeDestructureSnapshotRule].map((rule) => [rule.id, rule])).values(),
 ];
 
-export function getRules(rulePack: RulePack = "mvp"): RunnableRule[] {
+export function getRules(rulePack: RulePack = "core"): RunnableRule[] {
   switch (rulePack) {
     case "none":
       return [];
     case "reactivity":
       return REACTIVITY_RULES;
-    case "mvp":
-      return MVP_RULES;
+    case "core":
+      return CORE_RULES;
   }
 }
 

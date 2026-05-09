@@ -1,5 +1,5 @@
 {
-  "name": "invalid-mvp-rule-pack",
+  "name": "false-positive-core-rule-pack",
   "dependencies": {
     "@solidjs/start": "latest",
     "solid-js": "latest"

@@ -18,7 +18,7 @@ type RejectedExecFileError = Error & {
 };
 
 test("reports include weighted overall and category scores", async () => {
-  const report = await scanProject("fixtures/invalid-mvp-rule-pack");
+  const report = await scanProject("fixtures/invalid-core-rule-pack");
 
   assert.equal(report.score, report.scores.overall);
   assert.equal(report.scores.categories.reactivity < 100, true);
@@ -134,7 +134,7 @@ test("explain includes suppression miss guidance", async () => {
 });
 
 test("changed-line filtering keeps only diagnostics introduced in selected lines", async () => {
-  const report = await scanProject("fixtures/invalid-mvp-rule-pack", {
+  const report = await scanProject("fixtures/invalid-core-rule-pack", {
     changedLines: new Map([["src/App.tsx", new Set([11])]]),
   });
 

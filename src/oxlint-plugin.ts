@@ -3,7 +3,7 @@ import { relative } from "node:path";
 import { type RawFinding } from "./diagnostics";
 import { analyzeFile } from "./file-analysis";
 import { classifyFile, PROJECT_KINDS, type ProjectProfile } from "./project-classifier";
-import { MVP_RULES, type RunnableRule } from "./rule-catalog";
+import { CORE_RULES, type RunnableRule } from "./rule-catalog";
 import type { RuleContext } from "./rule-runner";
 
 const OXLINT_COMPATIBLE_RULE_IDS = new Set([
@@ -17,7 +17,7 @@ const OXLINT_COMPATIBLE_RULE_IDS = new Set([
   "solid/effect-cleanup-subscriptions",
 ]);
 
-export const OXLINT_COMPATIBLE_RULES = MVP_RULES.filter((rule) =>
+export const OXLINT_COMPATIBLE_RULES = CORE_RULES.filter((rule) =>
   OXLINT_COMPATIBLE_RULE_IDS.has(rule.id),
 );
 

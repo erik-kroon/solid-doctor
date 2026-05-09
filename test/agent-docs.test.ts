@@ -12,13 +12,13 @@ import { assertRuleDocsComplete, renderRuleExplanation } from "../src/rule-docs"
 
 const execFileAsync = promisify(execFile);
 
-test("each MVP rule has complete docs metadata", () => {
+test("each core rule has complete docs metadata", () => {
   assert.doesNotThrow(() => assertRuleDocsComplete());
 });
 
 test("rule catalog owns metadata lookup and rule pack selection", () => {
   assert.equal(getRules("none").length, 0);
-  assert.equal(getRules("mvp").length, 9);
+  assert.equal(getRules("core").length, 9);
   assert.equal(findRule("reactive-prop-snapshot")?.id, "solid/reactive-prop-snapshot");
 });
 

@@ -17,7 +17,7 @@ export type RuleContext = {
 export async function runRules({
   project,
   sourceFiles,
-  rulePack = "mvp",
+  rulePack = "core",
 }: {
   project: ProjectProfile;
   sourceFiles: ProjectSourceFile[];

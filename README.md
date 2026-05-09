@@ -14,9 +14,9 @@ Reactive values can be read in the wrong place, copied into stale local snapshot
 
 Those mistakes happen in hand-written Solid, migrated code and AI-generated changes. Solid Doctor makes them visible, explainable and enforceable across local development, CI, code review and coding-agent workflows.
 
-## Current State
+## What It Does
 
-This is a working TypeScript implementation of the Solid Doctor product loop:
+Solid Doctor provides the core workflows expected from a Solid-aware code-health CLI:
 
 - Scan a Solid project from one CLI command.
 - Classify Solid, SolidStart, Vite Solid, libraries, monorepos, generated files, tests, client-only paths, and SSR-capable files.
@@ -28,14 +28,12 @@ This is a working TypeScript implementation of the Solid Doctor product loop:
 - Support project config, repository ignores, per-rule/file ignores, and next-line suppressions.
 - Explain rule guidance through `solid-doctor explain`.
 - Install managed agent guidance into `AGENTS.md` and Cursor rules.
-- Build a Node-compatible npm package artifact that runs through `npx` and `bunx`.
+- Run as a Node-compatible npm package through `npx` and `bunx`.
 - Feed the optional source-checkout OpenTUI dashboard and issue explorer from the same report projection used by reporters.
-
-The package is prepared for npm publishing as `solid-doctor`, but is not published yet.
 
 ## Implemented Rule Pack
 
-The current MVP rule pack detects:
+The core rule pack detects:
 
 - `solid/reactive-prop-snapshot`: local snapshots of component props later used as if they were live.
 - `solid/derived-state-in-effect`: effects that mirror reactive inputs into another signal as derived state.
@@ -49,7 +47,7 @@ The current MVP rule pack detects:
 
 Additional selectable rule packs:
 
-- `--rules reactivity`: includes the MVP reactivity rules plus `solid/store-destructure-snapshot` for Solid store destructuring snapshots.
+- `--rules reactivity`: focuses on reactivity rules and includes `solid/store-destructure-snapshot` for Solid store destructuring snapshots.
 
 The rules are intentionally conservative. A diagnostic should point to a likely Solid correctness, SSR, lifecycle, or maintainability risk, not a formatting preference.
 
@@ -116,8 +114,6 @@ With Bun:
 bun add --dev solid-doctor
 bunx solid-doctor scan .
 ```
-
-Until the first npm publish, use the packed tarball smoke path from [docs/package-release.md](docs/package-release.md).
 
 ## Local Development
 
@@ -285,7 +281,7 @@ The key interface is the rule runner:
 - `src/rule-runner.ts` adapts rule findings into normalized diagnostics.
 - The doctor layer owns project classification, scoring, reporting, baselines, CI behavior, and agent installation.
 
-That boundary keeps the current TypeScript implementation small while leaving a path toward Oxlint JavaScript plugins or native Oxlint rules later. Reporters and TUI views consume a shared report projection, so fingerprints, locations, annotation levels, rule explanations, examples, tags, and diff previews are enriched once.
+That boundary keeps the TypeScript implementation focused while leaving a path toward Oxlint JavaScript plugins or native Oxlint rules later. Reporters and TUI views consume a shared report projection, so fingerprints, locations, annotation levels, rule explanations, examples, tags, and diff previews are enriched once.
 
 ## What To Look At
 

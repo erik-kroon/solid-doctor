@@ -4,7 +4,7 @@ Use this map to route future work quickly.
 
 ## Product And Planning
 
-- `README.md`: external-facing product description, current usage, roadmap.
+- `README.md`: external-facing product description, usage, and roadmap.
 - `CONTEXT.md`: domain vocabulary, product boundaries, rule quality bar.
 - `AGENTS.md`: operating guidance for coding agents.
 - GitHub issue `#1`: optimal end-state PRD.
@@ -23,7 +23,7 @@ Use this map to route future work quickly.
 
 - `src/rule-runner.ts`: adapter boundary between raw rule findings and normalized diagnostics.
 - `src/diagnostics.ts`: diagnostic, rule metadata, category, impact, tags, severity, confidence, and normalization contracts.
-- `src/rules/`: current rule implementations.
+- `src/rules/`: rule implementations.
 - `src/rules/rule-utils.ts`: shared text/position helpers used by rules.
 - `docs/rule-runner-boundary.md`: durable boundary notes.
 
@@ -36,8 +36,8 @@ Use this map to route future work quickly.
 
 ## Apps
 
-- `apps/web/`: web app scaffold; not yet the primary product surface.
-- `apps/tui/`: OpenTUI exploration for post-MVP interactive UI.
+- `apps/web/`: web app scaffold for future product surfaces.
+- `apps/tui/`: OpenTUI interface for dashboard and issue exploration workflows.
 
 ## Decisions And Agent Workflow
 

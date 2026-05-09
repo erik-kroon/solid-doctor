@@ -26,7 +26,7 @@ Recommended CI guard:
 ```bash
 bun src/benchmark.ts \
   --fixture fixtures/valid-solid \
-  --fixture fixtures/invalid-mvp-rule-pack \
+  --fixture fixtures/invalid-core-rule-pack \
   --runs 3 \
   --max-ms 10000
 ```

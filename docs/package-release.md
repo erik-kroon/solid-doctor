@@ -1,6 +1,6 @@
 # Package Release
 
-Solid Doctor is prepared to publish the unscoped npm package `solid-doctor`.
+Solid Doctor publishes as the unscoped npm package `solid-doctor`.
 
 The package is a CLI-first artifact. Source is TypeScript and local development uses Bun, but the published `solid-doctor` binary is bundled to `dist/cli.js` with a Node shebang so both npm and Bun package runners can execute it:
 

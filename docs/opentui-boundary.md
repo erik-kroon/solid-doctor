@@ -1,6 +1,6 @@
 # OpenTUI Boundary
 
-OpenTUI is optional and post-MVP presentation code.
+OpenTUI is the terminal presentation surface for dashboard and issue exploration workflows.
 
 The base scanner, rule engine, reporters, CI path, scoring, baselines, and agent installer do not import `@opentui/*`.
 

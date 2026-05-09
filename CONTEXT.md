@@ -19,9 +19,9 @@ The tool should make Solid's correctness and maintainability model visible acros
 ## Domain Vocabulary
 
 - **Diagnostic**: A normalized issue with rule id, category, severity, confidence, impact, tags, file location, message, docs slug, and remediation.
-- **Health score**: A `0-100` project score derived from diagnostics. Current scoring is impact-weighted and confidence-adjusted, with category subscores for adoption planning.
+- **Health score**: A `0-100` project score derived from diagnostics. Scoring is impact-weighted and confidence-adjusted, with category subscores for adoption planning.
 - **Rule**: A detection unit that emits raw findings plus metadata.
-- **Rule pack**: A group of rules focused on an adoption surface, such as MVP, reactivity, SSR, effects, owners, or library author mode.
+- **Rule pack**: A group of rules focused on an adoption surface, such as core diagnostics, reactivity, SSR, effects, owners, or library author mode.
 - **Reactive snapshot**: A local value copied from a reactive source outside a tracking scope and later treated as live.
 - **Tracking scope**: A Solid computation or JSX binding context where signal, store, resource, or prop reads are subscribed.
 - **Owner**: Solid's lifetime and context owner used for cleanup, context lookup, and descendant computations.
@@ -47,7 +47,7 @@ Solid Doctor should not:
 - Auto-rewrite complex reactive code without human judgment.
 - Enforce one team's style or component architecture.
 
-## Current Implementation Snapshot
+## Implementation Architecture
 
 - TypeScript-only source and tests.
 - Bun-native local development and test execution.
@@ -58,7 +58,7 @@ Solid Doctor should not:
 - The scanner orchestration is `src/scan.ts`.
 - Rule execution is isolated in `src/rule-runner.ts`.
 - Diagnostic contracts live in `src/diagnostics.ts`.
-- MVP rules currently live under `src/rules/`.
+- Core rules live under `src/rules/`.
 - Fixture projects live under `fixtures/`.
 
 ## Rule Quality Bar

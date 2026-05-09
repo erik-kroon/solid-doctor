@@ -10,7 +10,7 @@ import { scanProject } from "../src/scan";
 const execFileAsync = promisify(execFile);
 
 test("TUI view model filters issues by severity, category, rule, file, confidence, and fixability", async () => {
-  const report = await scanProject("fixtures/invalid-mvp-rule-pack");
+  const report = await scanProject("fixtures/invalid-core-rule-pack");
   const viewModel = createTuiViewModel({
     report: projectDoctorReport(report),
     filters: {

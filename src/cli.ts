@@ -101,7 +101,7 @@ if ((command !== "scan" && command !== "check") || !targetArg) {
 
 function printUsageAndExit(): never {
   console.error(
-    "Usage: solid-doctor scan <project> [--rules mvp|none] [--format terminal|json|markdown|sarif|github] [--project name-or-path] [--staged] [--baseline file] [--write-baseline file] [--diff base] [--changed-lines file] [--min-score number] [--verbose]",
+    "Usage: solid-doctor scan <project> [--rules core|reactivity|none] [--format terminal|json|markdown|sarif|github|agent] [--project name-or-path] [--staged] [--baseline file] [--write-baseline file] [--diff base] [--changed-lines file] [--min-score number] [--verbose]",
   );
   console.error("       solid-doctor check <project> [scan options]");
   console.error("       solid-doctor doctor <project> [scan options]");
@@ -143,16 +143,16 @@ function parseRulePack(args: string[]): RulePack {
   const flagIndex = args.indexOf("--rules");
 
   if (flagIndex === -1) {
-    return "mvp";
+    return "core";
   }
 
   const value = args[flagIndex + 1];
 
-  if (value === "mvp" || value === "reactivity" || value === "none") {
+  if (value === "core" || value === "reactivity" || value === "none") {
     return value;
   }
 
-  throw new Error("Expected --rules to be one of: mvp, reactivity, none.");
+  throw new Error("Expected --rules to be one of: core, reactivity, none.");
 }
 
 async function parseScanOptions(targetRoot: string, args: string[]) {
@@ -283,7 +283,7 @@ function renderReport(
 async function runTui(reportPath: string, mode: "dashboard" | "inspect"): Promise<number> {
   if (!existsSync("apps/tui/src/index.tsx")) {
     console.error(
-      "The OpenTUI doctor and inspect commands currently require a source checkout. Use 'solid-doctor scan <project> --format json' from the npm package.",
+      "The OpenTUI doctor and inspect commands run from a source checkout. Use 'solid-doctor scan <project> --format json' from the npm package.",
     );
     return 2;
   }
