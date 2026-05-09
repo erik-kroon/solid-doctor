@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
+import { loadSolidDoctorConfig } from "./adoption-config";
 import { classifyProject } from "./project-classifier";
 import { getRules } from "./rule-catalog";
 
@@ -25,7 +26,11 @@ export async function installAgentInstructions({
   target: AgentTarget;
 }): Promise<AgentInstallResult[]> {
   const profile = await classifyProject(projectRoot);
-  const guidance = renderAgentGuidance(profile.kind);
+  const config = await loadSolidDoctorConfig(projectRoot);
+  const guidance = renderAgentGuidance(
+    profile.kind,
+    getRules().filter((rule) => !config.ignore.rules.includes(rule.id)),
+  );
   const targets = resolveTargets(projectRoot, target);
   const results: AgentInstallResult[] = [];
 
@@ -44,7 +49,7 @@ export async function installAgentInstructions({
   return results;
 }
 
-function renderAgentGuidance(projectKind: string): string {
+function renderAgentGuidance(projectKind: string, rules: ReturnType<typeof getRules>): string {
   const lines = [
     START_MARKER,
     "# Solid Doctor Guidance",
@@ -54,7 +59,7 @@ function renderAgentGuidance(projectKind: string): string {
     "Follow Solid's fine-grained reactivity, SSR, lifecycle, and rendering model:",
   ];
 
-  for (const rule of getRules()) {
+  for (const rule of rules) {
     lines.push(
       "",
       `- ${rule.id} [${rule.meta.category}/${rule.meta.impact}]: ${rule.meta.remediation}`,

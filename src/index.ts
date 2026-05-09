@@ -13,6 +13,7 @@ export async function diagnose(
 }
 
 export { projectDoctorReport };
+export { projectAgentReport } from "./agent-report";
 export { oxlintRuleName, OXLINT_COMPATIBLE_RULES } from "./oxlint-plugin";
 export type { Diagnostic, DiagnosticFix, RuleMetadata, Severity } from "./diagnostics";
 export type { ProjectProfile, PackageProfile } from "./project-classifier";
@@ -21,3 +22,4 @@ export type { DoctorReport, DoctorRunMetadata, ScanOptions, SelectedProjectMetad
 export type { ScoreReport } from "./scoring";
 export type { SuppressionHint } from "./adoption-config";
 export type { OxlintPlugin } from "./oxlint-plugin";
+export type { AgentDiagnostic, AgentReport } from "./agent-report";

@@ -1,4 +1,5 @@
 import type { DoctorReport } from "./scan";
+import { projectAgentReport } from "./agent-report";
 import { projectDoctorReport, type ReportProjection } from "./report-projection";
 
 export function renderTerminalReport(report: DoctorReport): string {
@@ -37,6 +38,10 @@ export function renderTerminalReport(report: DoctorReport): string {
 
 export function renderJsonReport(report: DoctorReport): string {
   return `${JSON.stringify(toJsonReport(report), null, 2)}\n`;
+}
+
+export function renderAgentReport(report: DoctorReport): string {
+  return `${JSON.stringify(projectAgentReport(report), null, 2)}\n`;
 }
 
 export function renderJsonError({

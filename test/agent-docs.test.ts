@@ -88,3 +88,35 @@ test("agent installer dry-run shows intended changes without writing files", asy
     await rm(tempDir, { recursive: true, force: true });
   }
 });
+
+test("agent installer guidance reflects config-disabled rules", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "solid-doctor-agents-"));
+
+  try {
+    await writeFile(
+      join(tempDir, "package.json"),
+      JSON.stringify({
+        name: "agent-fixture",
+        dependencies: { "solid-js": "latest" },
+        solidDoctor: {
+          ignore: {
+            rules: ["solid/dynamic-map-in-jsx"],
+          },
+        },
+      }),
+    );
+
+    const [result] = await installAgentInstructions({
+      projectRoot: tempDir,
+      dryRun: true,
+      target: "agents",
+    });
+
+    assert.ok(result);
+    assert.match(result.content, /Project profile: solid/);
+    assert.doesNotMatch(result.content, /solid\/dynamic-map-in-jsx/);
+    assert.match(result.content, /solid\/reactive-prop-snapshot/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});

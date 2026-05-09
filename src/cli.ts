@@ -11,6 +11,7 @@ import { loadGitChangedLines, loadGitStagedFiles, readChangedLinesFile } from ".
 import { projectDoctorReport } from "./report-projection";
 import {
   renderGithubAnnotations,
+  renderAgentReport,
   renderJsonError,
   renderJsonReport,
   renderMarkdownReport,
@@ -182,7 +183,7 @@ function parseProjectSelections(args: string[]): string[] {
   );
 }
 
-type OutputFormat = "terminal" | "json" | "markdown" | "sarif" | "github";
+type OutputFormat = "terminal" | "json" | "markdown" | "sarif" | "github" | "agent";
 
 function parseFormat(args: string[]): OutputFormat {
   const format = valueAfter(args, "--format") ?? (args.includes("--ci") ? "markdown" : "terminal");
@@ -192,12 +193,15 @@ function parseFormat(args: string[]): OutputFormat {
     format === "json" ||
     format === "markdown" ||
     format === "sarif" ||
-    format === "github"
+    format === "github" ||
+    format === "agent"
   ) {
     return format;
   }
 
-  throw new Error("Expected --format to be one of: terminal, json, markdown, sarif, github.");
+  throw new Error(
+    "Expected --format to be one of: terminal, json, markdown, sarif, github, agent.",
+  );
 }
 
 function wantsJsonOutput(args: string[]): boolean {
@@ -269,6 +273,8 @@ function renderReport(
       return renderSarifReport(report);
     case "github":
       return renderGithubAnnotations(report);
+    case "agent":
+      return renderAgentReport(report);
     case "terminal":
       return renderTerminalReport(report);
   }

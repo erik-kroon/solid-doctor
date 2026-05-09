@@ -12,6 +12,7 @@ test("README links to external adoption docs", async () => {
     "docs/configuration.md",
     "docs/rule-reference.md",
     "docs/github-action.md",
+    "docs/agent-output.md",
   ]) {
     assert.match(readme, new RegExp(`\\(${path}\\)`));
   }

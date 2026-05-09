@@ -94,6 +94,7 @@ External docs:
 - [Rule reference](docs/rule-reference.md)
 - [GitHub Action](docs/github-action.md)
 - [Performance](docs/performance.md)
+- [Agent output](docs/agent-output.md)
 
 Package runners:
 
@@ -154,6 +155,7 @@ solid-doctor scan fixtures/valid-solid --format json
 solid-doctor scan fixtures/invalid-prop-snapshot --format markdown
 solid-doctor scan fixtures/invalid-prop-snapshot --format sarif
 solid-doctor scan fixtures/invalid-prop-snapshot --format github
+solid-doctor scan fixtures/invalid-prop-snapshot --format agent
 ```
 
 GitHub Action:
