@@ -94,6 +94,16 @@ export type Diagnostic = {
   fix?: DiagnosticFix;
 };
 
+export function diagnosticFingerprint(diagnostic: Diagnostic): string {
+  return [
+    diagnostic.ruleId,
+    diagnostic.filePath,
+    diagnostic.line,
+    diagnostic.column,
+    diagnostic.message,
+  ].join("|");
+}
+
 export function normalizeFinding({
   rule,
   finding,

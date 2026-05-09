@@ -1,6 +1,6 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
 import type { RunnableRule } from "../rule-catalog";
-import { positionAt } from "./rule-utils";
+import { positionAt } from "../source-location";
 
 export const asyncTrackingGapRule: RunnableRule = {
   id: "solid/async-tracking-gap",

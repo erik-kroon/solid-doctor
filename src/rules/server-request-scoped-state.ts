@@ -1,6 +1,6 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
 import type { RunnableRule } from "../rule-catalog";
-import { positionAt } from "./rule-utils";
+import { positionAt } from "../source-location";
 
 const MODULE_MUTABLE_PATTERN = /\b(?:let|var)\s+([A-Za-z_$][\w$]*)\b/g;
 const REQUEST_STATE_NAME_PATTERN =

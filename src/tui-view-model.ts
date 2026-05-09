@@ -1,11 +1,8 @@
-import type { Category, Confidence, Diagnostic, Impact, Severity } from "./diagnostics";
-import { projectIssue, type ReportIssue } from "./report-projection";
+import type { Category, Confidence, Impact, Severity } from "./diagnostics";
+import type { ReportIssue, ReportProjection } from "./report-projection";
 import type { ScoreReport } from "./scoring";
 
-export type TuiReport = {
-  score: ScoreReport;
-  diagnostics: Diagnostic[];
-};
+export type TuiReport = ReportProjection;
 
 export type IssueFilters = {
   severity?: Severity;
@@ -56,8 +53,8 @@ export function createTuiViewModel({
   filters?: IssueFilters;
   selectedIndex?: number;
 }): TuiViewModel {
-  const issues = report.diagnostics
-    .map(projectIssueToViewModel)
+  const issues = report.issues
+    .map(toIssueViewModel)
     .filter((diagnostic) => matchesFilters(diagnostic, filters));
 
   return {
@@ -79,10 +76,6 @@ function matchesFilters(diagnostic: IssueViewModel, filters: IssueFilters): bool
     (!filters.tag || diagnostic.tags.includes(filters.tag)) &&
     (filters.fixable === undefined || diagnostic.fixable === filters.fixable)
   );
-}
-
-function projectIssueToViewModel(diagnostic: Diagnostic): IssueViewModel {
-  return toIssueViewModel(projectIssue(diagnostic));
 }
 
 function toIssueViewModel(issue: ReportIssue): IssueViewModel {

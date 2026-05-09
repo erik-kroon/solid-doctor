@@ -3,6 +3,7 @@ import { execFile } from "node:child_process";
 import { test } from "bun:test";
 import { promisify } from "node:util";
 
+import { projectDoctorReport, projectIssues } from "../src/report-projection";
 import { createTuiViewModel } from "../src/tui-view-model";
 import { scanProject } from "../src/scan";
 
@@ -11,7 +12,7 @@ const execFileAsync = promisify(execFile);
 test("TUI view model filters issues by severity, category, rule, file, confidence, and fixability", async () => {
   const report = await scanProject("fixtures/invalid-mvp-rule-pack");
   const viewModel = createTuiViewModel({
-    report: { score: report.scores, diagnostics: report.diagnostics },
+    report: projectDoctorReport(report),
     filters: {
       severity: "error",
       category: "server",
@@ -45,8 +46,8 @@ test("TUI view model exposes diff previews when fix data exists", async () => {
 
   const viewModel = createTuiViewModel({
     report: {
-      score: report.scores,
-      diagnostics: [
+      ...projectDoctorReport(report),
+      issues: projectIssues([
         {
           ...diagnostic,
           fixable: true,
@@ -55,7 +56,7 @@ test("TUI view model exposes diff previews when fix data exists", async () => {
             diff: "- const name = props.name;\n+ const name = () => props.name;",
           },
         },
-      ],
+      ]),
     },
     filters: { fixable: true },
   });

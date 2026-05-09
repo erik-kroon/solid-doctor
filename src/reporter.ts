@@ -1,14 +1,15 @@
 import type { DoctorReport } from "./scan";
-import { projectDoctorReport } from "./report-projection";
+import { projectDoctorReport, type ReportProjection } from "./report-projection";
 
 export function renderTerminalReport(report: DoctorReport): string {
+  const projection = projectDoctorReport(report);
   const lines = [
     "Solid Doctor",
-    `Project: ${report.project.packageName ?? report.project.root}`,
-    `Health score: ${report.score}/100`,
+    `Project: ${projection.project.packageName ?? projection.project.root}`,
+    `Health score: ${projection.score.overall}/100`,
   ];
 
-  if (report.diagnostics.length === 0) {
+  if (projection.issues.length === 0) {
     lines.push("", "No Solid-specific diagnostics found.");
     appendClassifierMessages(lines, report.classifierMessages);
     return lines.join("\n");
@@ -16,7 +17,7 @@ export function renderTerminalReport(report: DoctorReport): string {
 
   lines.push("", "Diagnostics:");
 
-  for (const diagnostic of projectDoctorReport(report).issues) {
+  for (const diagnostic of projection.issues) {
     lines.push(
       `- [${diagnostic.severity}] ${diagnostic.category}/${diagnostic.impact} ${diagnostic.location}`,
       `  Tags: ${diagnostic.tags.join(", ")}`,
@@ -96,7 +97,10 @@ function appendClassifierMessages(lines: string[], messages: string[]): void {
 
 function toJsonReport(report: DoctorReport) {
   const projection = projectDoctorReport(report);
+  return toJsonProjection(projection);
+}
 
+function toJsonProjection(projection: ReportProjection) {
   return {
     schemaVersion: projection.schemaVersion,
     project: projection.project,

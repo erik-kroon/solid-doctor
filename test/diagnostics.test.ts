@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "bun:test";
 
-import { normalizeFinding, type RuleDefinition } from "../src/diagnostics";
+import { diagnosticFingerprint, normalizeFinding, type RuleDefinition } from "../src/diagnostics";
 
 test("normalizes a raw rule finding with rule metadata", () => {
   const rule: RuleDefinition = {
@@ -94,4 +94,25 @@ test("raw findings can override metadata defaults when needed", () => {
   assert.equal(diagnostic.severity, "error");
   assert.equal(diagnostic.confidence, "high");
   assert.equal(diagnostic.remediation, "Specific remediation.");
+});
+
+test("diagnostic fingerprints describe diagnostic identity outside scoring", () => {
+  const fingerprint = diagnosticFingerprint({
+    ruleId: "solid/example-rule",
+    category: "reactivity",
+    severity: "warning",
+    confidence: "high",
+    impact: "high",
+    impactDescription: "Example impact.",
+    tags: ["reactive"],
+    docsSlug: "example-rule",
+    filePath: "src/App.tsx",
+    line: 4,
+    column: 9,
+    message: "Example diagnostic.",
+    remediation: "Keep the read tracked.",
+    fixable: false,
+  });
+
+  assert.equal(fingerprint, "solid/example-rule|src/App.tsx|4|9|Example diagnostic.");
 });

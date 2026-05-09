@@ -41,16 +41,6 @@ export function calculateScore(diagnostics: Diagnostic[]): ScoreReport {
   };
 }
 
-export function diagnosticFingerprint(diagnostic: Diagnostic): string {
-  return [
-    diagnostic.ruleId,
-    diagnostic.filePath,
-    diagnostic.line,
-    diagnostic.column,
-    diagnostic.message,
-  ].join("|");
-}
-
 function scoreCategory(diagnostics: Diagnostic[], category: Category): number {
   const categoryPenalty = diagnostics
     .filter((diagnostic) => diagnostic.category === category)

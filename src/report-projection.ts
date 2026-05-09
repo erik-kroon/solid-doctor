@@ -1,7 +1,7 @@
-import type { Diagnostic } from "./diagnostics";
+import { diagnosticFingerprint, type Diagnostic } from "./diagnostics";
 import { findRule } from "./rule-catalog";
 import type { DoctorReport } from "./scan";
-import { diagnosticFingerprint, type ScoreReport } from "./scoring";
+import type { ScoreReport } from "./scoring";
 
 export type ReportIssue = Diagnostic & {
   fingerprint: string;

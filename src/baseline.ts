@@ -1,7 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 
-import type { Diagnostic } from "./diagnostics";
-import { diagnosticFingerprint } from "./scoring";
+import { diagnosticFingerprint, type Diagnostic } from "./diagnostics";
 
 export type BaselineFile = {
   version: 1;
