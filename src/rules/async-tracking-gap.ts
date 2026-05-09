@@ -1,6 +1,5 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
 import type { RunnableRule } from "../rule-catalog";
-import { positionAt } from "../source-location";
 
 export const asyncTrackingGapRule: RunnableRule = {
   id: "solid/async-tracking-gap",
@@ -29,17 +28,17 @@ export const asyncTrackingGapRule: RunnableRule = {
   check(context) {
     const findings: RawFinding[] = [];
 
-    for (const effect of context.trackingScopes.effects) {
+    for (const effect of context.analysis.effectScopes()) {
       if (effect.asyncAfterAwaitStart === null) {
         continue;
       }
 
-      if (context.reactiveReads.readsAfterAwait(effect).length === 0) {
+      if (context.analysis.readsAfterAwait(effect).length === 0) {
         continue;
       }
 
       findings.push({
-        ...positionAt(context.sourceText, effect.asyncAfterAwaitStart),
+        ...context.analysis.positionAt(effect.asyncAfterAwaitStart),
         message:
           "Reactive values read after await are outside Solid's synchronous tracking window.",
       });

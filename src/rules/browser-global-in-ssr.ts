@@ -1,6 +1,5 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
 import type { RunnableRule } from "../rule-catalog";
-import { positionAt } from "../source-location";
 
 const BROWSER_GLOBAL_PATTERN = /\b(window|document|localStorage|sessionStorage|navigator)\b/g;
 
@@ -35,15 +34,15 @@ export const browserGlobalInSsrRule: RunnableRule = {
     const findings: RawFinding[] = [];
     let match: RegExpExecArray | null;
 
-    while ((match = BROWSER_GLOBAL_PATTERN.exec(context.sourceText))) {
+    while ((match = BROWSER_GLOBAL_PATTERN.exec(context.analysis.sourceText()))) {
       const matchIndex = match.index;
 
-      if (context.reactiveReads.isIndexInsideMount(matchIndex)) {
+      if (context.analysis.isIndexInsideMount(matchIndex)) {
         continue;
       }
 
       findings.push({
-        ...positionAt(context.sourceText, matchIndex),
+        ...context.analysis.positionAt(matchIndex),
         message: `Browser global '${match[1]}' is read in an SSR-capable file.`,
       });
     }

@@ -1,7 +1,5 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
-import { localNameFor } from "../reactive-source-model";
 import type { RunnableRule } from "../rule-catalog";
-import { positionAt } from "../source-location";
 import { escapeRegExp } from "./rule-utils";
 
 const REGISTRATION_PATTERN = /\b(addEventListener|setInterval|setTimeout|observe|subscribe)\s*\(/;
@@ -33,11 +31,11 @@ export const effectCleanupSubscriptionsRule: RunnableRule = {
     fixable: false,
   },
   check(context) {
-    const cleanupName = localNameFor(context.reactiveSources.solidImports, "onCleanup");
+    const cleanupName = context.analysis.localNameFor("onCleanup");
     const cleanupPattern = new RegExp(`\\b${escapeRegExp(cleanupName)}\\s*\\(`);
     const findings: RawFinding[] = [];
 
-    for (const scope of context.trackingScopes.scopes) {
+    for (const scope of context.analysis.trackingScopes()) {
       if (scope.kind !== "effect" && scope.kind !== "mount") {
         continue;
       }
@@ -49,7 +47,7 @@ export const effectCleanupSubscriptionsRule: RunnableRule = {
       }
 
       findings.push({
-        ...positionAt(context.sourceText, scope.bodyStart + registration.index),
+        ...context.analysis.positionAt(scope.bodyStart + registration.index),
         message: "External registration is created without paired onCleanup in this owner scope.",
       });
     }

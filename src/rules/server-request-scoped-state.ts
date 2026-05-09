@@ -1,6 +1,5 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
 import type { RunnableRule } from "../rule-catalog";
-import { positionAt } from "../source-location";
 
 const MODULE_MUTABLE_PATTERN = /\b(?:let|var)\s+([A-Za-z_$][\w$]*)\b/g;
 const REQUEST_STATE_NAME_PATTERN =
@@ -42,19 +41,19 @@ export const serverRequestScopedStateRule: RunnableRule = {
     const findings: RawFinding[] = [];
     let match: RegExpExecArray | null;
 
-    while ((match = MODULE_MUTABLE_PATTERN.exec(context.sourceText))) {
+    while ((match = MODULE_MUTABLE_PATTERN.exec(context.analysis.sourceText()))) {
       const name = match[1];
 
       if (
         !name ||
         !REQUEST_STATE_NAME_PATTERN.test(name) ||
-        !isTopLevel(context.sourceText, match.index)
+        !isTopLevel(context.analysis.sourceText(), match.index)
       ) {
         continue;
       }
 
       findings.push({
-        ...positionAt(context.sourceText, match.index),
+        ...context.analysis.positionAt(match.index),
         message: `Module-level mutable '${name}' can share request data across SSR users.`,
       });
     }

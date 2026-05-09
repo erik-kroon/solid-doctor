@@ -23,7 +23,7 @@ export const reactivePropSnapshotRule: RunnableRule = {
     fixable: false,
   },
   check(context) {
-    return context.reactiveReads.propSnapshotsUsedInReturnedJsx().map((snapshot) => ({
+    return context.analysis.propSnapshotsUsedInReturnedJsx().map((snapshot) => ({
       line: snapshot.line,
       column: snapshot.column,
       message: `Local value '${snapshot.localName}' snapshots ${snapshot.sourceName}.${snapshot.propName} before JSX can track it.`,

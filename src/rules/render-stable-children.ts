@@ -1,7 +1,5 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
-import { localNameFor } from "../reactive-source-model";
 import type { RunnableRule } from "../rule-catalog";
-import { positionAt } from "../source-location";
 import { escapeRegExp } from "./rule-utils";
 
 export const renderStableChildrenRule: RunnableRule = {
@@ -27,19 +25,19 @@ export const renderStableChildrenRule: RunnableRule = {
     fixable: false,
   },
   check(context) {
-    const childrenName = localNameFor(context.reactiveSources.solidImports, "children");
+    const childrenName = context.analysis.localNameFor("children");
     const findings: RawFinding[] = [];
 
-    for (const propsName of context.reactiveSources.propsNames) {
+    for (const propsName of context.analysis.propNames()) {
       const readPattern = new RegExp(`\\b${escapeRegExp(propsName)}\\.children\\b`, "g");
       const resolverPattern = new RegExp(
         `\\b${escapeRegExp(childrenName)}\\s*\\(\\s*\\(\\s*\\)\\s*=>\\s*${escapeRegExp(
           propsName,
         )}\\.children\\b`,
       );
-      const reads = [...context.sourceText.matchAll(readPattern)];
+      const reads = [...context.analysis.sourceText().matchAll(readPattern)];
 
-      if (reads.length < 2 || resolverPattern.test(context.sourceText)) {
+      if (reads.length < 2 || resolverPattern.test(context.analysis.sourceText())) {
         continue;
       }
 
@@ -50,7 +48,7 @@ export const renderStableChildrenRule: RunnableRule = {
       }
 
       findings.push({
-        ...positionAt(context.sourceText, firstRead.index),
+        ...context.analysis.positionAt(firstRead.index),
         message: `${propsName}.children is read ${reads.length} times without children() resolution.`,
       });
     }

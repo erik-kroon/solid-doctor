@@ -26,7 +26,7 @@ export const dynamicMapInJsxRule: RunnableRule = {
     fixable: false,
   },
   check(context) {
-    return context.reactiveReads.reactiveJsxListSources().map((source) => ({
+    return context.analysis.reactiveJsxListSources().map((source) => ({
       line: source.line,
       column: source.column,
       message:

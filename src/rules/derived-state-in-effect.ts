@@ -26,12 +26,12 @@ export const derivedStateInEffectRule: RunnableRule = {
   check(context) {
     const findings: RawFinding[] = [];
 
-    for (const effect of context.trackingScopes.effects) {
-      if (!context.reactiveReads.hasReadInRegion(effect)) {
+    for (const effect of context.analysis.effectScopes()) {
+      if (!context.analysis.hasReadInRegion(effect)) {
         continue;
       }
 
-      for (const write of context.reactiveReads.writesInRegion(effect)) {
+      for (const write of context.analysis.writesInRegion(effect)) {
         findings.push({
           line: write.line,
           column: write.column,

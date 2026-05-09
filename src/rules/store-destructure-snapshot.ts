@@ -23,7 +23,7 @@ export const storeDestructureSnapshotRule: RunnableRule = {
     fixable: false,
   },
   check(context) {
-    return context.reactiveReads.storeSnapshotsUsedInReturnedJsx().map((snapshot) => ({
+    return context.analysis.storeSnapshotsUsedInReturnedJsx().map((snapshot) => ({
       line: snapshot.line,
       column: snapshot.column,
       message: `Local value '${snapshot.localName}' snapshots ${snapshot.sourceName}.${snapshot.propertyName} before JSX can track the store property.`,

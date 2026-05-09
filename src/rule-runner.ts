@@ -1,22 +1,17 @@
 import { readFile } from "node:fs/promises";
 
 import { type Diagnostic, normalizeFinding } from "./diagnostics";
+import { analyzeFile, type FileAnalysis } from "./file-analysis";
 import type { ProjectSourceFile } from "./project-file-set";
 import type { ProjectProfile } from "./project-classifier";
-import { analyzeReactiveReads, type ReactiveReadModel } from "./reactive-read-model";
-import { analyzeReactiveSources, type ReactiveSourceModel } from "./reactive-source-model";
 import { getRules } from "./rule-catalog";
 import type { RulePack } from "./rule-catalog";
-import { analyzeTrackingScopes, type TrackingScopeModel } from "./tracking-scope-model";
 
 export type RuleContext = {
   project: ProjectProfile;
   filePath: string;
   relativeFilePath: string;
-  sourceText: string;
-  reactiveSources: ReactiveSourceModel;
-  trackingScopes: TrackingScopeModel;
-  reactiveReads: ReactiveReadModel;
+  analysis: FileAnalysis;
 };
 
 export async function runRules({
@@ -56,16 +51,10 @@ function createRuleContext({
   sourceFile: ProjectSourceFile;
   sourceText: string;
 }): RuleContext {
-  const reactiveSources = analyzeReactiveSources(sourceText);
-  const trackingScopes = analyzeTrackingScopes(sourceText, reactiveSources);
-
   return {
     project,
     filePath: sourceFile.filePath,
     relativeFilePath: sourceFile.relativeFilePath,
-    sourceText,
-    reactiveSources,
-    trackingScopes,
-    reactiveReads: analyzeReactiveReads({ source: sourceText, reactiveSources, trackingScopes }),
+    analysis: analyzeFile(sourceText),
   };
 }

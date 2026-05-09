@@ -1,6 +1,5 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
 import type { RunnableRule } from "../rule-catalog";
-import { positionAt } from "../source-location";
 
 const FETCH_PATTERN = /\bfetch\s*\(/;
 
@@ -32,7 +31,7 @@ export const asyncNoFetchInEffectRule: RunnableRule = {
   check(context) {
     const findings: RawFinding[] = [];
 
-    for (const effect of context.trackingScopes.effects) {
+    for (const effect of context.analysis.effectScopes()) {
       const match = FETCH_PATTERN.exec(effect.body);
 
       if (!match) {
@@ -40,7 +39,7 @@ export const asyncNoFetchInEffectRule: RunnableRule = {
       }
 
       findings.push({
-        ...positionAt(context.sourceText, effect.bodyStart + match.index),
+        ...context.analysis.positionAt(effect.bodyStart + match.index),
         message: "Application data is fetched from createEffect instead of Solid async primitives.",
       });
     }

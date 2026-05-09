@@ -1,12 +1,10 @@
 import { relative } from "node:path";
 
 import { type RawFinding } from "./diagnostics";
+import { analyzeFile } from "./file-analysis";
 import { classifyFile, PROJECT_KINDS, type ProjectProfile } from "./project-classifier";
 import { MVP_RULES, type RunnableRule } from "./rule-catalog";
-import { analyzeReactiveReads } from "./reactive-read-model";
-import { analyzeReactiveSources } from "./reactive-source-model";
 import type { RuleContext } from "./rule-runner";
-import { analyzeTrackingScopes } from "./tracking-scope-model";
 
 const OXLINT_COMPATIBLE_RULE_IDS = new Set([
   "solid/reactive-prop-snapshot",
@@ -96,9 +94,6 @@ function createPluginRuleContext(context: OxlintContext): RuleContext {
     kind: PROJECT_KINDS.solid,
     usesSolidStart: false,
   });
-  const reactiveSources = analyzeReactiveSources(sourceText);
-  const trackingScopes = analyzeTrackingScopes(sourceText, reactiveSources);
-
   return {
     project: {
       root: projectRoot,
@@ -115,10 +110,7 @@ function createPluginRuleContext(context: OxlintContext): RuleContext {
     } satisfies ProjectProfile,
     filePath: context.filename,
     relativeFilePath,
-    sourceText,
-    reactiveSources,
-    trackingScopes,
-    reactiveReads: analyzeReactiveReads({ source: sourceText, reactiveSources, trackingScopes }),
+    analysis: analyzeFile(sourceText),
   };
 }
 
