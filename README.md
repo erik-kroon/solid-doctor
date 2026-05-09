@@ -87,6 +87,13 @@ Diagnostics:
 
 ## Usage
 
+External docs:
+
+- [Installation](docs/installation.md)
+- [Configuration and adoption](docs/configuration.md)
+- [Rule reference](docs/rule-reference.md)
+- [GitHub Action](docs/github-action.md)
+
 Package runners:
 
 ```bash
