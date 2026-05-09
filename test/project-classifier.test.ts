@@ -15,6 +15,7 @@ test("classifier gates SSR diagnostics away from client-only and generated files
   assert.equal(profile.fileClassifications.get("src/routes/index.tsx")?.serverCapable, true);
   assert.equal(profile.fileClassifications.get("src/entry.client.tsx")?.clientOnly, true);
   assert.equal(profile.fileClassifications.get("src/generated/types.generated.ts")?.ignored, true);
+  assert.equal(profile.fileClassifications.get("src/App.test.tsx")?.ignored, true);
 
   const report = await scanProject("fixtures/classifier-solid-start");
   assert.deepEqual(
@@ -38,6 +39,19 @@ test("classifier detects monorepo package profiles", async () => {
       ?.roles.includes(FILE_ROLES.library),
     true,
   );
+});
+
+test("classifier detects conventional workspace packages without requiring root solid-js", async () => {
+  const profile = await classifyProject("fixtures/classifier-conventional-monorepo");
+
+  assert.equal(profile.usesSolid, true);
+  assert.equal(profile.packages.length, 1);
+  assert.equal(profile.packages[0]?.relativeRoot, "apps/web");
+  assert.equal(profile.fileClassifications.get("fixtures/invalid-prop/src/App.tsx")?.ignored, true);
+
+  const report = await scanProject("fixtures/classifier-conventional-monorepo");
+  assert.deepEqual(report.diagnostics, []);
+  assert.equal(report.score, 100);
 });
 
 test("verbose scan output explains project and file classification", async () => {

@@ -75,10 +75,13 @@ export async function classifyProject(projectRoot: string): Promise<ProjectProfi
     ...packageJson.peerDependencies,
   };
 
-  const usesSolid = Boolean(dependencies["solid-js"]);
-  const usesSolidStart = Boolean(dependencies["@solidjs/start"] ?? dependencies["solid-start"]);
   const kind = classifyPackageKind(packageJson);
   const packages = await classifyWorkspacePackages(projectRoot, packageJson);
+  const usesSolid =
+    Boolean(dependencies["solid-js"]) || packages.some((profile) => profile.usesSolid);
+  const usesSolidStart =
+    Boolean(dependencies["@solidjs/start"] ?? dependencies["solid-start"]) ||
+    packages.some((profile) => profile.kind === PROJECT_KINDS.solidStart);
   const sourceFiles = await collectSourceFiles(projectRoot);
   const fileClassifications = new Map<string, FileClassification>();
 
@@ -135,6 +138,11 @@ export function classifyFile(
     reasons.push("test path");
   }
 
+  if (/^(fixtures|references)\//.test(path)) {
+    roles.push(FILE_ROLES.generated);
+    reasons.push("fixture or reference path");
+  }
+
   if (
     /(^|\/)(vite|astro|tsup|rollup|eslint|oxlint|tailwind|postcss|tsconfig)\.config\./.test(path)
   ) {
@@ -157,7 +165,10 @@ export function classifyFile(
     reasons.push("source path");
   }
 
-  const ignored = roles.some((role) => role === FILE_ROLES.generated || role === FILE_ROLES.config);
+  const ignored = roles.some(
+    (role) =>
+      role === FILE_ROLES.generated || role === FILE_ROLES.config || role === FILE_ROLES.test,
+  );
   const clientOnly = roles.includes(FILE_ROLES.clientOnly);
   const serverCapable =
     project.usesSolidStart && !clientOnly && !ignored && !roles.includes(FILE_ROLES.test);
@@ -222,11 +233,12 @@ async function classifyWorkspacePackages(
   projectRoot: string,
   packageJson: PackageJson,
 ): Promise<PackageProfile[]> {
-  const workspacePatterns = Array.isArray(packageJson.workspaces)
+  const declaredWorkspacePatterns = Array.isArray(packageJson.workspaces)
     ? packageJson.workspaces
     : packageJson.workspaces?.packages;
+  const workspacePatterns = declaredWorkspacePatterns ?? ["apps/*", "packages/*"];
 
-  if (!workspacePatterns) {
+  if (workspacePatterns.length === 0) {
     return [];
   }
 
