@@ -28,6 +28,7 @@
   "scripts": {
     "build": "rm -rf dist && bun build src/cli.ts --target node --outfile dist/cli.js && bun build src/index.ts --target node --outfile dist/index.js && bun build src/oxlint-plugin.ts --target node --outfile dist/oxlint-plugin.js && bun x @typescript/native-preview -p tsconfig.build.json",
     "prepack": "bun run build",
+    "benchmark": "bun src/benchmark.ts",
     "scan": "bun src/cli.ts scan",
     "test": "bun test test/*.test.ts",
     "check-types": "bun x @typescript/native-preview --noEmit"

@@ -93,6 +93,7 @@ External docs:
 - [Configuration and adoption](docs/configuration.md)
 - [Rule reference](docs/rule-reference.md)
 - [GitHub Action](docs/github-action.md)
+- [Performance](docs/performance.md)
 
 Package runners:
 
@@ -226,6 +227,7 @@ bun src/cli.ts inspect fixtures/invalid-prop-snapshot
 bun run test
 bun run check-types
 bun run build
+bun run benchmark -- --fixture fixtures/valid-solid --runs 3
 bun run --cwd apps/tui check-types
 ```
 
