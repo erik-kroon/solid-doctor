@@ -55,7 +55,10 @@ function renderAgentGuidance(projectKind: string): string {
   ];
 
   for (const rule of getRules()) {
-    lines.push("", `- ${rule.id}: ${rule.meta.remediation}`);
+    lines.push(
+      "",
+      `- ${rule.id} [${rule.meta.category}/${rule.meta.impact}]: ${rule.meta.remediation}`,
+    );
   }
 
   lines.push(

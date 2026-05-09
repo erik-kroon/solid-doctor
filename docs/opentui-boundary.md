@@ -10,7 +10,7 @@ The TUI owns presentation only:
 
 - dashboard score display
 - issue explorer view models
-- filtering by severity, category, rule, file, confidence, and fixability
+- filtering by severity, category, impact, tag, rule, file, confidence, and fixability
 - detail text from rule metadata
 - code location and future diff preview slots
 

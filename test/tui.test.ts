@@ -14,7 +14,7 @@ test("TUI view model filters issues by severity, category, rule, file, confidenc
     report: { score: report.scores, diagnostics: report.diagnostics },
     filters: {
       severity: "error",
-      category: "ssr",
+      category: "server",
       ruleId: "solid/browser-global-in-ssr",
       filePath: "src/App.tsx",
       confidence: "high",
@@ -24,6 +24,14 @@ test("TUI view model filters issues by severity, category, rule, file, confidenc
 
   assert.equal(viewModel.issues.length, 1);
   assert.equal(viewModel.selectedIssue?.ruleId, "solid/browser-global-in-ssr");
+  assert.equal(viewModel.selectedIssue?.impact, "high");
+  assert.deepEqual(viewModel.selectedIssue?.tags, [
+    "server",
+    "browser-api",
+    "ssr",
+    "hydration",
+    "onMount",
+  ]);
   assert.match(viewModel.selectedIssue?.explanation ?? "", /server rendering/);
   assert.match(viewModel.selectedIssue?.preferredExample ?? "", /onMount/);
   assert.equal(viewModel.selectedIssue?.diffPreview, null);

@@ -7,9 +7,12 @@ const BROWSER_GLOBAL_PATTERN = /\b(window|document|localStorage|sessionStorage|n
 export const browserGlobalInSsrRule: RunnableRule = {
   id: "solid/browser-global-in-ssr",
   meta: {
-    category: CATEGORIES.ssr,
+    category: CATEGORIES.server,
     defaultSeverity: SEVERITIES.error,
     confidence: CONFIDENCE.high,
+    impact: "high",
+    impactDescription: "prevents SSR crashes and hydration-only data bugs",
+    tags: ["server", "browser-api", "ssr", "hydration", "onMount"],
     docsSlug: "browser-global-in-ssr",
     description: "Detects browser globals read from SSR-capable files.",
     why: "SolidStart server rendering can evaluate route and module code where browser globals such as window and document do not exist.",

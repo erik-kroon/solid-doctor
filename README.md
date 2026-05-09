@@ -23,7 +23,7 @@ Solid Doctor is designed as a product layer over a rule engine:
 - A one-command CLI that scans Solid projects and reports a `0-100` health score.
 - An Oxlint-oriented rule runner boundary for Solid-specific diagnostics.
 - A project classifier for Solid, SolidStart, libraries, monorepos, test fixtures, and generated code.
-- A normalized diagnostic model with severity, confidence, category, docs slug, location, and remediation.
+- A normalized diagnostic model with severity, confidence, category, impact, tags, docs slug, location, and remediation.
 - Reporters for terminal, JSON, Markdown, SARIF, GitHub annotations, and agent-readable output.
 - Agent instruction installation for `AGENTS.md`, Codex, Claude Code, Cursor, Copilot, and similar workflows.
 - Fixture-driven conformance tests that prove rules catch real Solid mistakes without punishing idiomatic Solid.
@@ -75,8 +75,8 @@ The implementation now covers the vertical slices from the PRD:
 - Solid, SolidStart, Vite Solid, library, monorepo, test/config/generated/client-only/server-capable classification.
 - A rule runner boundary that separates rule findings from the doctor product layer.
 - Shared reactive source and tracking scope models.
-- A normalized diagnostic model with severity, confidence, category, docs slug, fixability, location, remediation, and optional fix data.
-- Weighted health scoring with category subscores.
+- A normalized diagnostic model with severity, confidence, category, impact, tags, docs slug, fixability, location, remediation, and optional fix data.
+- Impact-weighted health scoring with category subscores.
 - Terminal, JSON, Markdown, SARIF, and GitHub annotation reporters.
 - Baseline, diff, changed-line, and score-threshold adoption paths.
 - Rule metadata, `explain`, and agent instruction installation for `AGENTS.md` and Cursor.
@@ -88,10 +88,11 @@ Example output:
 ```txt
 Solid Doctor
 Project: invalid-prop-snapshot-fixture
-Health score: 88/100
+Health score: 82/100
 
 Diagnostics:
-- [warning] reactivity src/App.tsx:6:3
+- [warning] reactivity/high src/App.tsx:6:3
+  Tags: reactive, props, splitProps, mergeProps
   Local value 'name' snapshots props.name before JSX can track it.
   Fix: Read props.name inside JSX, use a prop accessor, or wrap the derivation in createMemo.
 ```
@@ -215,8 +216,12 @@ The MVP rule pack is:
 - Reactive prop/store snapshot.
 - Derived state in effects.
 - Async tracking gap after `await`.
+- Data fetches started from effects instead of Solid async primitives.
 - Dynamic reactive `.map()` in JSX.
+- Repeated `props.children` reads without `children()`.
 - Browser globals in SSR-capable paths.
+- Request-scoped mutable module state in SSR-capable paths.
+- Missing cleanup for subscriptions, timers, observers, and listeners.
 
 ## References
 

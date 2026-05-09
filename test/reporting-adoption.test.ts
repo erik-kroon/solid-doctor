@@ -22,7 +22,7 @@ test("reports include weighted overall and category scores", async () => {
 
   assert.equal(report.score, report.scores.overall);
   assert.equal(report.scores.categories.reactivity < 100, true);
-  assert.equal(report.scores.categories.ssr < 100, true);
+  assert.equal(report.scores.categories.server < 100, true);
 });
 
 test("JSON output is versioned and serializable", async () => {

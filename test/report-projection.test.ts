@@ -14,6 +14,8 @@ test("report projection enriches diagnostics once for reporters and TUI views", 
   assert.ok(issue);
   assert.equal(issue.location, "src/App.tsx:6:3");
   assert.equal(issue.annotationLevel, "warning");
+  assert.equal(issue.impact, "high");
+  assert.deepEqual(issue.tags, ["reactive", "props", "splitProps", "mergeProps"]);
   assert.match(issue.fingerprint, /^solid\/reactive-prop-snapshot\|src\/App\.tsx/);
   assert.match(issue.explanation, /Solid components run once/);
   assert.match(issue.preferredExample, /props\.name/);

@@ -18,7 +18,8 @@ export function renderTerminalReport(report: DoctorReport): string {
 
   for (const diagnostic of projectDoctorReport(report).issues) {
     lines.push(
-      `- [${diagnostic.severity}] ${diagnostic.category} ${diagnostic.location}`,
+      `- [${diagnostic.severity}] ${diagnostic.category}/${diagnostic.impact} ${diagnostic.location}`,
+      `  Tags: ${diagnostic.tags.join(", ")}`,
       `  ${diagnostic.message}`,
       `  Fix: ${diagnostic.remediation}`,
     );
@@ -59,13 +60,13 @@ export function renderMarkdownReport(report: DoctorReport): string {
     "",
     "## Diagnostics",
     "",
-    "| Severity | Rule | Location | Remediation |",
-    "| --- | --- | --- | --- |",
+    "| Severity | Impact | Tags | Rule | Location | Remediation |",
+    "| --- | --- | --- | --- | --- | --- |",
   );
 
   for (const diagnostic of projection.issues) {
     lines.push(
-      `| ${diagnostic.severity} | ${diagnostic.ruleId} | ${diagnostic.location} | ${diagnostic.remediation} |`,
+      `| ${diagnostic.severity} | ${diagnostic.impact} | ${diagnostic.tags.join(", ")} | ${diagnostic.ruleId} | ${diagnostic.location} | ${diagnostic.remediation} |`,
     );
   }
 
@@ -117,6 +118,9 @@ function toSarifReport(report: DoctorReport) {
         properties: {
           category: diagnostic.category,
           confidence: diagnostic.confidence,
+          impact: diagnostic.impact,
+          impactDescription: diagnostic.impactDescription,
+          tags: diagnostic.tags,
           docsSlug: diagnostic.docsSlug,
         },
       },
@@ -157,6 +161,9 @@ function toSarifReport(report: DoctorReport) {
           properties: {
             category: diagnostic.category,
             confidence: diagnostic.confidence,
+            impact: diagnostic.impact,
+            impactDescription: diagnostic.impactDescription,
+            tags: diagnostic.tags,
             fingerprint: diagnostic.fingerprint,
           },
         })),

@@ -68,7 +68,7 @@ export function projectIssue(diagnostic: Diagnostic): ReportIssue {
     fingerprint,
     location: `${diagnostic.filePath}:${diagnostic.line}:${diagnostic.column}`,
     annotationLevel: diagnostic.severity === "error" ? "error" : "warning",
-    ruleTitle: `${diagnostic.ruleId}: ${diagnostic.remediation}`,
+    ruleTitle: `${diagnostic.ruleId} [${diagnostic.impact}]: ${diagnostic.remediation}`,
     explanation: rule?.meta.why ?? diagnostic.message,
     badExample: rule?.meta.badExample ?? "",
     preferredExample: rule?.meta.preferredExample ?? "",

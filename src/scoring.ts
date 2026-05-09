@@ -3,7 +3,7 @@ import {
   type Category,
   type Confidence,
   type Diagnostic,
-  type Severity,
+  type Impact,
 } from "./diagnostics";
 
 export type ScoreReport = {
@@ -11,9 +11,13 @@ export type ScoreReport = {
   categories: Record<Category, number>;
 };
 
-const SEVERITY_WEIGHT: Record<Severity, number> = {
-  error: 25,
-  warning: 12,
+const IMPACT_WEIGHT: Record<Impact, number> = {
+  critical: 25,
+  high: 18,
+  "medium-high": 14,
+  medium: 10,
+  "low-medium": 6,
+  low: 3,
 };
 
 const CONFIDENCE_MULTIPLIER: Record<Confidence, number> = {
@@ -56,7 +60,7 @@ function scoreCategory(diagnostics: Diagnostic[], category: Category): number {
 }
 
 function diagnosticPenalty(diagnostic: Diagnostic): number {
-  return SEVERITY_WEIGHT[diagnostic.severity] * CONFIDENCE_MULTIPLIER[diagnostic.confidence];
+  return IMPACT_WEIGHT[diagnostic.impact] * CONFIDENCE_MULTIPLIER[diagnostic.confidence];
 }
 
 function clampScore(score: number): number {

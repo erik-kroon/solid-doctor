@@ -20,6 +20,6 @@ This is where future Oxlint JavaScript-plugin rules or native Oxlint rules shoul
 - CI thresholds, baselines, and diff filtering.
 - Agent instruction installation.
 
-Rules should not know how scores are calculated or how reports are rendered. They emit raw findings plus metadata, and the adapter turns those findings into diagnostics.
+Rules should not know how scores are calculated or how reports are rendered. They emit raw findings plus metadata, including category, impact, and tags, and the adapter turns those findings into diagnostics.
 
 Reporters and TUI views consume report projections rather than re-deriving fingerprints, locations, annotation levels, or rule-enriched issue details independently.

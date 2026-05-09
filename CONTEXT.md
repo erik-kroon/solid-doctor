@@ -18,8 +18,8 @@ The tool should make Solid's correctness model visible across local development,
 
 ## Domain Vocabulary
 
-- **Diagnostic**: A normalized issue with rule id, category, severity, confidence, file location, message, docs slug, and remediation.
-- **Health score**: A `0-100` project score derived from diagnostics. Early scoring is intentionally simple; later scoring should account for severity, confidence, category, project type, and diff status.
+- **Diagnostic**: A normalized issue with rule id, category, severity, confidence, impact, tags, file location, message, docs slug, and remediation.
+- **Health score**: A `0-100` project score derived from diagnostics. Current scoring is impact-weighted and confidence-adjusted, with category subscores for adoption planning.
 - **Rule**: A detection unit that emits raw findings plus metadata.
 - **Rule pack**: A group of rules focused on an adoption surface, such as MVP, reactivity, SSR, effects, owners, or library author mode.
 - **Reactive snapshot**: A local value copied from a reactive source outside a tracking scope and later treated as live.
@@ -65,6 +65,6 @@ New rules should have:
 
 - A specific Solid mental model failure.
 - High-signal default behavior.
-- Metadata with category, severity, confidence, docs slug, and remediation.
+- Metadata with category, impact, tags, severity, confidence, docs slug, and remediation.
 - Valid, invalid, and false-positive fixtures.
 - A path to shared source/tracking analysis instead of private duplicated heuristics.

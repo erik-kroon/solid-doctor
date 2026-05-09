@@ -15,6 +15,8 @@ const SOLID_IMPORTS = new Set([
   "createSignal",
   "createMemo",
   "createResource",
+  "children",
+  "onCleanup",
   "onMount",
 ]);
 const STORE_IMPORTS = new Set(["createStore"]);
