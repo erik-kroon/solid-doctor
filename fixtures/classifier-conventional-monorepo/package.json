@@ -1,0 +1,6 @@
+{
+  "name": "classifier-conventional-monorepo",
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

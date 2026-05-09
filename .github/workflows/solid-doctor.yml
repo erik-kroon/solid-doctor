@@ -1,0 +1,24 @@
+name: Solid Doctor
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  solid-doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - name: Solid Doctor Markdown summary
+        run: bun src/cli.ts scan . --ci --diff origin/main --min-score 80 > solid-doctor-summary.md
+      - name: Solid Doctor annotations
+        if: always()
+        run: bun src/cli.ts scan . --format github --diff origin/main
+      - name: Solid Doctor SARIF
+        if: always()
+        run: bun src/cli.ts scan . --format sarif > solid-doctor.sarif

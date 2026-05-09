@@ -1,0 +1,7 @@
+{
+  "name": "invalid-mvp-rule-pack",
+  "dependencies": {
+    "@solidjs/start": "latest",
+    "solid-js": "latest"
+  }
+}

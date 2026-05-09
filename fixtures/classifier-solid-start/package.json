@@ -1,0 +1,7 @@
+{
+  "name": "classifier-solid-start",
+  "dependencies": {
+    "@solidjs/start": "latest",
+    "solid-js": "latest"
+  }
+}

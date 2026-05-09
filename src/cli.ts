@@ -1,0 +1,243 @@
+#!/usr/bin/env bun
+import { spawn } from "node:child_process";
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+
+import { type AgentTarget, installAgentInstructions } from "./agent-installer";
+import { readBaseline, writeBaseline } from "./baseline";
+import { loadGitChangedLines, readChangedLinesFile } from "./diff-filter";
+import {
+  renderGithubAnnotations,
+  renderJsonReport,
+  renderMarkdownReport,
+  renderSarifReport,
+  renderTerminalReport,
+} from "./reporter";
+import { renderRuleExplanation } from "./rule-docs";
+import type { RulePack } from "./rule-runner";
+import { scanProject } from "./scan";
+
+const [, , command, targetArg, ...args] = process.argv;
+
+if (!command) {
+  printUsageAndExit();
+}
+
+if (command === "explain") {
+  if (!targetArg) {
+    printUsageAndExit();
+  }
+
+  try {
+    console.log(renderRuleExplanation(targetArg));
+    process.exit(0);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(2);
+  }
+}
+
+if (command === "install-agents") {
+  if (!targetArg) {
+    printUsageAndExit();
+  }
+
+  try {
+    const results = await installAgentInstructions({
+      projectRoot: resolve(targetArg),
+      dryRun: args.includes("--dry-run"),
+      target: parseAgentTarget(args),
+    });
+
+    for (const result of results) {
+      console.log(`${result.changed ? "Would update" : "No changes"}: ${result.path}`);
+
+      if (args.includes("--dry-run")) {
+        console.log(result.content);
+      }
+    }
+
+    process.exit(0);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(2);
+  }
+}
+
+if (command === "doctor" || command === "inspect") {
+  if (!targetArg) {
+    printUsageAndExit();
+  }
+
+  try {
+    const targetRoot = resolve(targetArg);
+    const report = await scanProject(targetRoot, await parseScanOptions(targetRoot, args));
+
+    if (process.env.SOLID_DOCTOR_TUI_DRY_RUN === "1") {
+      console.log(`${command === "inspect" ? "Issue Explorer" : "Doctor Dashboard"} ready`);
+      console.log(`Score: ${report.score}/100`);
+      console.log(`Issues: ${report.diagnostics.length}`);
+      process.exit(0);
+    }
+
+    const tempDir = await mkdtemp(join(tmpdir(), "solid-doctor-tui-"));
+    const reportPath = join(tempDir, "report.json");
+    await writeFile(reportPath, renderJsonReport(report));
+    process.exit(await runTui(reportPath, command === "inspect" ? "inspect" : "dashboard"));
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(2);
+  }
+}
+
+if ((command !== "scan" && command !== "check") || !targetArg) {
+  printUsageAndExit();
+}
+
+function printUsageAndExit(): never {
+  console.error(
+    "Usage: solid-doctor scan <project> [--rules mvp|none] [--format terminal|json|markdown|sarif|github] [--baseline file] [--write-baseline file] [--diff base] [--changed-lines file] [--min-score number] [--verbose]",
+  );
+  console.error("       solid-doctor check <project> [scan options]");
+  console.error("       solid-doctor doctor <project> [scan options]");
+  console.error("       solid-doctor inspect <project> [scan options]");
+  console.error("       solid-doctor explain <rule>");
+  console.error(
+    "       solid-doctor install-agents <project> [--target agents|cursor|all] [--dry-run]",
+  );
+  process.exit(2);
+}
+
+try {
+  const targetRoot = resolve(targetArg);
+  const minScore = parseOptionalNumber(valueAfter(args, "--min-score"), "--min-score");
+  const report = await scanProject(targetRoot, await parseScanOptions(targetRoot, args));
+  const writeBaselinePath = valueAfter(args, "--write-baseline");
+
+  if (writeBaselinePath) {
+    await writeBaseline(resolve(writeBaselinePath), report.diagnostics);
+  }
+
+  console.log(renderReport(report, parseFormat(args)));
+  process.exit(
+    report.diagnostics.length > 0 || (minScore !== null && report.score < minScore) ? 1 : 0,
+  );
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(2);
+}
+
+function parseRulePack(args: string[]): RulePack {
+  const flagIndex = args.indexOf("--rules");
+
+  if (flagIndex === -1) {
+    return "mvp";
+  }
+
+  const value = args[flagIndex + 1];
+
+  if (value === "mvp" || value === "none") {
+    return value;
+  }
+
+  throw new Error("Expected --rules to be either 'mvp' or 'none'.");
+}
+
+async function parseScanOptions(targetRoot: string, args: string[]) {
+  const baselinePath = valueAfter(args, "--baseline");
+  const changedLinesPath = valueAfter(args, "--changed-lines");
+  const diffBase = valueAfter(args, "--diff");
+
+  return {
+    rulePack: parseRulePack(args),
+    verbose: args.includes("--verbose"),
+    baselineFingerprints: baselinePath ? await readBaseline(resolve(baselinePath)) : undefined,
+    changedLines: changedLinesPath
+      ? await readChangedLinesFile(resolve(changedLinesPath))
+      : diffBase
+        ? await loadGitChangedLines(diffBase, targetRoot)
+        : undefined,
+  };
+}
+
+type OutputFormat = "terminal" | "json" | "markdown" | "sarif" | "github";
+
+function parseFormat(args: string[]): OutputFormat {
+  const format = valueAfter(args, "--format") ?? (args.includes("--ci") ? "markdown" : "terminal");
+
+  if (
+    format === "terminal" ||
+    format === "json" ||
+    format === "markdown" ||
+    format === "sarif" ||
+    format === "github"
+  ) {
+    return format;
+  }
+
+  throw new Error("Expected --format to be one of: terminal, json, markdown, sarif, github.");
+}
+
+function parseOptionalNumber(value: string | null, flagName: string): number | null {
+  if (value === null) {
+    return null;
+  }
+
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    throw new Error(`Expected ${flagName} to be a number.`);
+  }
+
+  return number;
+}
+
+function valueAfter(args: string[], flagName: string): string | null {
+  const flagIndex = args.indexOf(flagName);
+
+  if (flagIndex === -1) {
+    return null;
+  }
+
+  return args[flagIndex + 1] ?? null;
+}
+
+function parseAgentTarget(args: string[]): AgentTarget {
+  const target = valueAfter(args, "--target") ?? "all";
+
+  if (target === "agents" || target === "cursor" || target === "all") {
+    return target;
+  }
+
+  throw new Error("Expected --target to be one of: agents, cursor, all.");
+}
+
+function renderReport(
+  report: Awaited<ReturnType<typeof scanProject>>,
+  format: OutputFormat,
+): string {
+  switch (format) {
+    case "json":
+      return renderJsonReport(report);
+    case "markdown":
+      return renderMarkdownReport(report);
+    case "sarif":
+      return renderSarifReport(report);
+    case "github":
+      return renderGithubAnnotations(report);
+    case "terminal":
+      return renderTerminalReport(report);
+  }
+}
+
+async function runTui(reportPath: string, mode: "dashboard" | "inspect"): Promise<number> {
+  const child = spawn("bun", ["apps/tui/src/index.tsx", reportPath, mode], {
+    stdio: "inherit",
+  });
+
+  return await new Promise((resolvePromise, reject) => {
+    child.on("error", reject);
+    child.on("close", (code) => resolvePromise(code ?? 0));
+  });
+}

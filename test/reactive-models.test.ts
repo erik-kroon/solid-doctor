@@ -1,0 +1,69 @@
+import assert from "node:assert/strict";
+import { test } from "bun:test";
+
+import { analyzeReactiveSources } from "../src/reactive-source-model";
+import { TRACKING_SCOPE_KINDS, analyzeTrackingScopes } from "../src/tracking-scope-model";
+
+test("reactive source model detects aliases and common Solid sources", () => {
+  const source = `
+    import { createEffect as fx, createMemo as memo, createResource, createSignal as signal } from "solid-js";
+    import { createStore as store } from "solid-js/store";
+
+    export function Counter(input: { count: number }) {
+      const [count, setCount] = signal(0);
+      const [state] = store({ items: [] });
+      const doubled = memo(() => count() * 2);
+      const [profile] = createResource(() => input.count, fetchProfile);
+      fx(() => setCount(input.count));
+      return <ul>{state.items.map(String)} {doubled()} {profile()}</ul>;
+    }
+  `;
+
+  const model = analyzeReactiveSources(source);
+
+  assert.equal(model.solidImports.get("createEffect"), "fx");
+  assert.equal(model.solidImports.get("createSignal"), "signal");
+  assert.equal(model.solidImports.get("createStore"), "store");
+  assert.deepEqual(model.propsNames, new Set(["input"]));
+  assert.deepEqual(model.signalGetters, new Set(["count"]));
+  assert.deepEqual(model.signalSetters, new Set(["setCount"]));
+  assert.deepEqual(model.stores, new Set(["state"]));
+  assert.deepEqual(model.memos, new Set(["doubled"]));
+  assert.deepEqual(model.resources, new Set(["profile"]));
+  assert.equal(
+    model.hasReactiveRead("input.count + count() + state.items + doubled() + profile()"),
+    true,
+  );
+  assert.equal(model.isReactiveMapExpression("state.items"), true);
+});
+
+test("tracking scope model exposes effects, resources, memos, mounts, and async regions", () => {
+  const source = `
+    import { createEffect as fx, createMemo, createResource, onMount as mounted } from "solid-js";
+
+    fx(async () => {
+      await Promise.resolve();
+      console.log("after");
+    });
+    createMemo(() => "value");
+    createResource(() => "key", fetcher);
+    mounted(() => {
+      console.log(window.location.href);
+    });
+  `;
+  const reactiveSources = analyzeReactiveSources(source);
+  const model = analyzeTrackingScopes(source, reactiveSources);
+
+  assert.equal(model.scopes.length, 4);
+  assert.equal(model.effects.length, 1);
+  assert.equal(
+    model.scopes.some((scope) => scope.kind === TRACKING_SCOPE_KINDS.memo),
+    true,
+  );
+  assert.equal(
+    model.scopes.some((scope) => scope.kind === TRACKING_SCOPE_KINDS.resource),
+    true,
+  );
+  assert.equal(model.effects[0]?.asyncAfterAwaitStart === null, false);
+  assert.equal(model.onMountRanges.length, 1);
+});

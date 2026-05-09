@@ -1,0 +1,10 @@
+{
+  "name": "@fixture/web",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "solid-js": "latest",
+    "vite-plugin-solid": "latest"
+  }
+}
