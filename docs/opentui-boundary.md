@@ -14,4 +14,6 @@ The TUI owns presentation only:
 - detail text from rule metadata
 - code location and future diff preview slots
 
+Issue details come from the shared report projection module, not direct rule lookup. This keeps the OpenTUI view model aligned with JSON, Markdown, SARIF, and GitHub annotation output.
+
 Analysis remains owned by the core scanner.

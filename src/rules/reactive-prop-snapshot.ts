@@ -1,14 +1,5 @@
-import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
-import type { RunnableRule } from "../rule-runner";
-import { escapeRegExp, positionAt } from "./rule-utils";
-
-type PropSnapshotDeclaration = {
-  localName: string;
-  propName: string;
-  index: number;
-  line: number;
-  column: number;
-};
+import { CATEGORIES, CONFIDENCE, SEVERITIES } from "../diagnostics";
+import type { RunnableRule } from "../rule-catalog";
 
 export const reactivePropSnapshotRule: RunnableRule = {
   id: "solid/reactive-prop-snapshot",
@@ -29,74 +20,11 @@ export const reactivePropSnapshotRule: RunnableRule = {
     fixable: false,
   },
   check(context) {
-    const findings: RawFinding[] = [];
-    const declarations = findPropSnapshotDeclarations(
-      context.sourceText,
-      context.reactiveSources.propsNames,
-    );
-
-    for (const declaration of declarations) {
-      if (!isUsedInReturnedJsx(context.sourceText, declaration)) {
-        continue;
-      }
-
-      findings.push({
-        line: declaration.line,
-        column: declaration.column,
-        message: `Local value '${declaration.localName}' snapshots props.${declaration.propName} before JSX can track it.`,
-        remediation: `Read props.${declaration.propName} inside JSX, use a prop accessor, or wrap the derivation in createMemo.`,
-      });
-    }
-
-    return findings;
+    return context.reactiveReads.propSnapshotsUsedInReturnedJsx().map((snapshot) => ({
+      line: snapshot.line,
+      column: snapshot.column,
+      message: `Local value '${snapshot.localName}' snapshots ${snapshot.sourceName}.${snapshot.propName} before JSX can track it.`,
+      remediation: `Read ${snapshot.sourceName}.${snapshot.propName} inside JSX, use a prop accessor, or wrap the derivation in createMemo.`,
+    }));
   },
 };
-
-function findPropSnapshotDeclarations(
-  source: string,
-  propsNames: Set<string>,
-): PropSnapshotDeclaration[] {
-  const declarations: PropSnapshotDeclaration[] = [];
-  const propsPattern = [...propsNames].map(escapeRegExp).join("|");
-
-  if (!propsPattern) {
-    return declarations;
-  }
-
-  const pattern = new RegExp(
-    `\\b(?:const|let|var)\\s+([A-Za-z_$][\\w$]*)\\s*=\\s*(${propsPattern})\\.([A-Za-z_$][\\w$]*)\\b`,
-    "g",
-  );
-  let match: RegExpExecArray | null;
-
-  while ((match = pattern.exec(source))) {
-    const localName = match[1];
-    const propName = match[3];
-
-    if (!localName || !propName) {
-      continue;
-    }
-
-    declarations.push({
-      localName,
-      propName,
-      index: match.index,
-      ...positionAt(source, match.index),
-    });
-  }
-
-  return declarations;
-}
-
-function isUsedInReturnedJsx(source: string, declaration: PropSnapshotDeclaration): boolean {
-  const afterDeclaration = source.slice(declaration.index);
-  const returnIndex = afterDeclaration.search(/\breturn\s*(?:\(|<)/);
-
-  if (returnIndex === -1) {
-    return false;
-  }
-
-  const returnedSource = afterDeclaration.slice(returnIndex);
-  const usagePattern = new RegExp(`\\b${escapeRegExp(declaration.localName)}\\b`);
-  return usagePattern.test(returnedSource);
-}

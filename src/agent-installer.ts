@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import { classifyProject } from "./project-classifier";
-import { getRules } from "./rule-runner";
+import { getRules } from "./rule-catalog";
 
 const START_MARKER = "<!-- solid-doctor:start -->";
 const END_MARKER = "<!-- solid-doctor:end -->";

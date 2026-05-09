@@ -1,6 +1,5 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
-import type { RunnableRule } from "../rule-runner";
-import { escapeRegExp, positionAt } from "./rule-utils";
+import type { RunnableRule } from "../rule-catalog";
 
 export const derivedStateInEffectRule: RunnableRule = {
   id: "solid/derived-state-in-effect",
@@ -23,24 +22,17 @@ export const derivedStateInEffectRule: RunnableRule = {
   },
   check(context) {
     const findings: RawFinding[] = [];
-    const signalSetters = context.reactiveSources.signalSetters;
 
     for (const effect of context.trackingScopes.effects) {
-      if (!context.reactiveSources.hasReactiveRead(effect.body)) {
+      if (!context.reactiveReads.hasReadInRegion(effect)) {
         continue;
       }
 
-      for (const setter of signalSetters) {
-        const setterIndex = effect.body.search(new RegExp(`\\b${escapeRegExp(setter)}\\s*\\(`));
-
-        if (setterIndex === -1) {
-          continue;
-        }
-
-        const position = positionAt(context.sourceText, effect.bodyStart + setterIndex);
+      for (const write of context.reactiveReads.writesInRegion(effect)) {
         findings.push({
-          ...position,
-          message: `Effect writes derived state with '${setter}' from reactive inputs.`,
+          line: write.line,
+          column: write.column,
+          message: `Effect writes derived state with '${write.setterName}' from reactive inputs.`,
         });
       }
     }

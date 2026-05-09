@@ -1,0 +1,4 @@
+interface:
+  display_name: "SolidJS Best Practices"
+  short_description: "Guide Solid and SolidStart code quality"
+  default_prompt: "Use $solidjs-best-practices to review this SolidStart route for reactive correctness, async data flow, and server/client boundary issues."

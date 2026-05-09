@@ -1,5 +1,5 @@
 import type { DoctorReport } from "./scan";
-import { diagnosticFingerprint } from "./scoring";
+import { projectDoctorReport } from "./report-projection";
 
 export function renderTerminalReport(report: DoctorReport): string {
   const lines = [
@@ -16,9 +16,9 @@ export function renderTerminalReport(report: DoctorReport): string {
 
   lines.push("", "Diagnostics:");
 
-  for (const diagnostic of report.diagnostics) {
+  for (const diagnostic of projectDoctorReport(report).issues) {
     lines.push(
-      `- [${diagnostic.severity}] ${diagnostic.category} ${diagnostic.filePath}:${diagnostic.line}:${diagnostic.column}`,
+      `- [${diagnostic.severity}] ${diagnostic.category} ${diagnostic.location}`,
       `  ${diagnostic.message}`,
       `  Fix: ${diagnostic.remediation}`,
     );
@@ -34,6 +34,7 @@ export function renderJsonReport(report: DoctorReport): string {
 }
 
 export function renderMarkdownReport(report: DoctorReport): string {
+  const projection = projectDoctorReport(report);
   const lines = [
     "# Solid Doctor Report",
     "",
@@ -49,7 +50,7 @@ export function renderMarkdownReport(report: DoctorReport): string {
     lines.push(`| ${category} | ${score}/100 |`);
   }
 
-  if (report.diagnostics.length === 0) {
+  if (projection.issues.length === 0) {
     lines.push("", "No Solid-specific diagnostics found.");
     return `${lines.join("\n")}\n`;
   }
@@ -62,9 +63,9 @@ export function renderMarkdownReport(report: DoctorReport): string {
     "| --- | --- | --- | --- |",
   );
 
-  for (const diagnostic of report.diagnostics) {
+  for (const diagnostic of projection.issues) {
     lines.push(
-      `| ${diagnostic.severity} | ${diagnostic.ruleId} | ${diagnostic.filePath}:${diagnostic.line}:${diagnostic.column} | ${diagnostic.remediation} |`,
+      `| ${diagnostic.severity} | ${diagnostic.ruleId} | ${diagnostic.location} | ${diagnostic.remediation} |`,
     );
   }
 
@@ -76,11 +77,9 @@ export function renderSarifReport(report: DoctorReport): string {
 }
 
 export function renderGithubAnnotations(report: DoctorReport): string {
-  return report.diagnostics
-    .map((diagnostic) => {
-      const annotationLevel = diagnostic.severity === "error" ? "error" : "warning";
-      const title = `${diagnostic.ruleId}: ${diagnostic.remediation}`;
-      return `::${annotationLevel} file=${escapeAnnotationProperty(diagnostic.filePath)},line=${diagnostic.line},col=${diagnostic.column},title=${escapeAnnotationProperty(title)}::${escapeAnnotationMessage(diagnostic.message)}`;
+  return projectDoctorReport(report)
+    .issues.map((diagnostic) => {
+      return `::${diagnostic.annotationLevel} file=${escapeAnnotationProperty(diagnostic.filePath)},line=${diagnostic.line},col=${diagnostic.column},title=${escapeAnnotationProperty(diagnostic.ruleTitle)}::${escapeAnnotationMessage(diagnostic.message)}`;
     })
     .join("\n");
 }
@@ -95,32 +94,20 @@ function appendClassifierMessages(lines: string[], messages: string[]): void {
 }
 
 function toJsonReport(report: DoctorReport) {
+  const projection = projectDoctorReport(report);
+
   return {
-    schemaVersion: 1,
-    project: {
-      root: report.project.root,
-      packageName: report.project.packageName,
-      kind: report.project.kind,
-      usesSolid: report.project.usesSolid,
-      usesSolidStart: report.project.usesSolidStart,
-      packages: report.project.packages.map((packageProfile) => ({
-        relativeRoot: packageProfile.relativeRoot,
-        packageName: packageProfile.packageName,
-        kind: packageProfile.kind,
-        usesSolid: packageProfile.usesSolid,
-      })),
-    },
-    score: report.scores,
-    diagnostics: report.diagnostics.map((diagnostic) => ({
-      ...diagnostic,
-      fingerprint: diagnosticFingerprint(diagnostic),
-    })),
+    schemaVersion: projection.schemaVersion,
+    project: projection.project,
+    score: projection.score,
+    diagnostics: projection.issues,
   };
 }
 
 function toSarifReport(report: DoctorReport) {
+  const issues = projectDoctorReport(report).issues;
   const rules = new Map(
-    report.diagnostics.map((diagnostic) => [
+    issues.map((diagnostic) => [
       diagnostic.ruleId,
       {
         id: diagnostic.ruleId,
@@ -148,9 +135,9 @@ function toSarifReport(report: DoctorReport) {
             rules: [...rules.values()],
           },
         },
-        results: report.diagnostics.map((diagnostic) => ({
+        results: issues.map((diagnostic) => ({
           ruleId: diagnostic.ruleId,
-          level: diagnostic.severity === "error" ? "error" : "warning",
+          level: diagnostic.annotationLevel,
           message: {
             text: `${diagnostic.message} ${diagnostic.remediation}`,
           },
@@ -170,7 +157,7 @@ function toSarifReport(report: DoctorReport) {
           properties: {
             category: diagnostic.category,
             confidence: diagnostic.confidence,
-            fingerprint: diagnosticFingerprint(diagnostic),
+            fingerprint: diagnostic.fingerprint,
           },
         })),
       },

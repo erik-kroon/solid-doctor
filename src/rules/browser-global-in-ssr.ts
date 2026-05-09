@@ -1,5 +1,5 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
-import type { RunnableRule } from "../rule-runner";
+import type { RunnableRule } from "../rule-catalog";
 import { positionAt } from "./rule-utils";
 
 const BROWSER_GLOBAL_PATTERN = /\b(window|document|localStorage|sessionStorage|navigator)\b/g;
@@ -30,13 +30,12 @@ export const browserGlobalInSsrRule: RunnableRule = {
     }
 
     const findings: RawFinding[] = [];
-    const { onMountRanges } = context.trackingScopes;
     let match: RegExpExecArray | null;
 
     while ((match = BROWSER_GLOBAL_PATTERN.exec(context.sourceText))) {
       const matchIndex = match.index;
 
-      if (onMountRanges.some((range) => matchIndex >= range.start && matchIndex <= range.end)) {
+      if (context.reactiveReads.isIndexInsideMount(matchIndex)) {
         continue;
       }
 

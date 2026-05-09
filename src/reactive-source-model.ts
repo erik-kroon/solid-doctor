@@ -8,8 +8,6 @@ export type ReactiveSourceModel = {
   memos: Set<string>;
   resources: Set<string>;
   solidImports: Map<string, string>;
-  hasReactiveRead(source: string): boolean;
-  isReactiveMapExpression(expression: string): boolean;
 };
 
 const SOLID_IMPORTS = new Set([
@@ -38,18 +36,6 @@ export function analyzeReactiveSources(source: string): ReactiveSourceModel {
     memos,
     resources,
     solidImports,
-    hasReactiveRead(candidate) {
-      return hasReactiveRead(candidate, { propsNames, signalGetters, stores, memos, resources });
-    },
-    isReactiveMapExpression(expression) {
-      return isReactiveMapExpression(expression, {
-        propsNames,
-        signalGetters,
-        stores,
-        memos,
-        resources,
-      });
-    },
   };
 }
 
@@ -138,62 +124,4 @@ function findAssignedNames(source: string, factoryName: string): Set<string> {
   }
 
   return names;
-}
-
-function hasReactiveRead(
-  source: string,
-  model: Pick<
-    ReactiveSourceModel,
-    "propsNames" | "signalGetters" | "stores" | "memos" | "resources"
-  >,
-): boolean {
-  for (const propsName of model.propsNames) {
-    if (new RegExp(`\\b${escapeRegExp(propsName)}\\.[A-Za-z_$][\\w$]*`).test(source)) {
-      return true;
-    }
-  }
-
-  for (const getter of [...model.signalGetters, ...model.memos, ...model.resources]) {
-    if (new RegExp(`\\b${escapeRegExp(getter)}\\s*\\(`).test(source)) {
-      return true;
-    }
-  }
-
-  for (const store of model.stores) {
-    if (new RegExp(`\\b${escapeRegExp(store)}\\.[A-Za-z_$][\\w$]*`).test(source)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function isReactiveMapExpression(
-  expression: string,
-  model: Pick<
-    ReactiveSourceModel,
-    "propsNames" | "signalGetters" | "stores" | "memos" | "resources"
-  >,
-): boolean {
-  const trimmed = expression.trim();
-
-  for (const propsName of model.propsNames) {
-    if (trimmed.startsWith(`${propsName}.`)) {
-      return true;
-    }
-  }
-
-  for (const getter of [...model.signalGetters, ...model.memos, ...model.resources]) {
-    if (trimmed === `${getter}()`) {
-      return true;
-    }
-  }
-
-  for (const store of model.stores) {
-    if (trimmed.startsWith(`${store}.`)) {
-      return true;
-    }
-  }
-
-  return false;
 }

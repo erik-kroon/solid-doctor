@@ -1,5 +1,5 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
-import type { RunnableRule } from "../rule-runner";
+import type { RunnableRule } from "../rule-catalog";
 import { positionAt } from "./rule-utils";
 
 export const asyncTrackingGapRule: RunnableRule = {
@@ -31,12 +31,7 @@ export const asyncTrackingGapRule: RunnableRule = {
         continue;
       }
 
-      const afterAwait = context.sourceText.slice(
-        effect.asyncAfterAwaitStart + "await ".length,
-        effect.end,
-      );
-
-      if (!context.reactiveSources.hasReactiveRead(afterAwait)) {
+      if (context.reactiveReads.readsAfterAwait(effect).length === 0) {
         continue;
       }
 

@@ -14,8 +14,8 @@ import {
   renderSarifReport,
   renderTerminalReport,
 } from "./reporter";
+import type { RulePack } from "./rule-catalog";
 import { renderRuleExplanation } from "./rule-docs";
-import type { RulePack } from "./rule-runner";
 import { scanProject } from "./scan";
 
 const [, , command, targetArg, ...args] = process.argv;

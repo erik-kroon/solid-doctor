@@ -7,12 +7,19 @@ import { test } from "bun:test";
 import { promisify } from "node:util";
 
 import { installAgentInstructions } from "../src/agent-installer";
+import { findRule, getRules } from "../src/rule-catalog";
 import { assertRuleDocsComplete, renderRuleExplanation } from "../src/rule-docs";
 
 const execFileAsync = promisify(execFile);
 
 test("each MVP rule has complete docs metadata", () => {
   assert.doesNotThrow(() => assertRuleDocsComplete());
+});
+
+test("rule catalog owns metadata lookup and rule pack selection", () => {
+  assert.equal(getRules("none").length, 0);
+  assert.equal(getRules("mvp").length, 5);
+  assert.equal(findRule("reactive-prop-snapshot")?.id, "solid/reactive-prop-snapshot");
 });
 
 test("explain renders useful rule guidance from metadata", async () => {

@@ -14,7 +14,22 @@ Solid Doctor rules query shared models instead of rediscovering Solid semantics 
 - resource accessors from `createResource`
 - helper predicates for reactive reads and reactive `.map()` expressions
 
-Rules should ask this model whether a snippet reads reactive data instead of matching only `props` or unaliased `createSignal`.
+This model owns import, alias, and source discovery. It does not decide whether a read is tracked or belongs to a rule pattern.
+
+## Reactive Read Model
+
+`analyzeReactiveReads({ source, reactiveSources, trackingScopes })` turns source discovery and tracking scopes into direct domain queries:
+
+- `readsInRegion(region)`
+- `writesInRegion(region)`
+- `readsAfterAwait(scope)`
+- `reactiveJsxListSources()`
+- `propSnapshotsUsedInReturnedJsx()`
+- `isIndexTracked(index)`
+- `isIndexPostAwait(index)`
+- `isIndexInsideMount(index)`
+
+Rules should ask these questions instead of slicing source text, recalculating regions, or rediscovering whether a pattern is reactive.
 
 ## Tracking Scope Model
 

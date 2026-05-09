@@ -3,6 +3,7 @@ import { execFile } from "node:child_process";
 import { test } from "bun:test";
 import { promisify } from "node:util";
 
+import { collectAnalyzableProjectFiles } from "../src/project-file-set";
 import { FILE_ROLES, PROJECT_KINDS, classifyProject } from "../src/project-classifier";
 import { scanProject } from "../src/scan";
 
@@ -52,6 +53,17 @@ test("classifier detects conventional workspace packages without requiring root 
   const report = await scanProject("fixtures/classifier-conventional-monorepo");
   assert.deepEqual(report.diagnostics, []);
   assert.equal(report.score, 100);
+});
+
+test("project file set owns analyzable file filtering from classification", async () => {
+  const profile = await classifyProject("fixtures/classifier-conventional-monorepo");
+  const files = await collectAnalyzableProjectFiles(profile);
+
+  assert.deepEqual(
+    files.map((file) => file.relativeFilePath),
+    ["apps/web/src/App.tsx"],
+  );
+  assert.equal(files[0]?.classification.ignored, false);
 });
 
 test("verbose scan output explains project and file classification", async () => {

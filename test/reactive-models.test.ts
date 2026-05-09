@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "bun:test";
 
 import { analyzeReactiveSources } from "../src/reactive-source-model";
+import { analyzeReactiveReads } from "../src/reactive-read-model";
 import { TRACKING_SCOPE_KINDS, analyzeTrackingScopes } from "../src/tracking-scope-model";
 
 test("reactive source model detects aliases and common Solid sources", () => {
@@ -30,11 +31,49 @@ test("reactive source model detects aliases and common Solid sources", () => {
   assert.deepEqual(model.stores, new Set(["state"]));
   assert.deepEqual(model.memos, new Set(["doubled"]));
   assert.deepEqual(model.resources, new Set(["profile"]));
-  assert.equal(
-    model.hasReactiveRead("input.count + count() + state.items + doubled() + profile()"),
-    true,
+});
+
+test("reactive read model answers region and JSX list source questions", () => {
+  const source = `
+    import { createEffect, createSignal } from "solid-js";
+
+    export function Counter(props: { count: number }) {
+      const [count, setCount] = createSignal(0);
+      const [items] = createSignal(["Ada"]);
+      const initial = props.count;
+
+      createEffect(async () => {
+        setCount(props.count);
+        await Promise.resolve();
+        console.log(count());
+      });
+
+      return <ul>{items().map((item) => <li>{item}</li>)} {initial}</ul>;
+    }
+  `;
+  const reactiveSources = analyzeReactiveSources(source);
+  const trackingScopes = analyzeTrackingScopes(source, reactiveSources);
+  const reads = analyzeReactiveReads({ source, reactiveSources, trackingScopes });
+  const [effect] = trackingScopes.effects;
+
+  assert.ok(effect);
+  assert.equal(reads.hasReadInRegion(effect), true);
+  assert.deepEqual(
+    reads.writesInRegion(effect).map((write) => write.setterName),
+    ["setCount"],
   );
-  assert.equal(model.isReactiveMapExpression("state.items"), true);
+  assert.deepEqual(
+    reads.readsAfterAwait(effect).map((read) => read.expression),
+    ["count("],
+  );
+  assert.deepEqual(
+    reads.reactiveJsxListSources().map((listSource) => listSource.expression),
+    ["items()"],
+  );
+  assert.deepEqual(
+    reads.propSnapshotsUsedInReturnedJsx().map((snapshot) => snapshot.localName),
+    ["initial"],
+  );
 });
 
 test("tracking scope model exposes effects, resources, memos, mounts, and async regions", () => {

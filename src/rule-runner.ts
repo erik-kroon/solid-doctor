@@ -1,30 +1,13 @@
 import { readFile } from "node:fs/promises";
-import { relative } from "node:path";
 
-import {
-  type Diagnostic,
-  type RawFinding,
-  type RuleDefinition,
-  normalizeFinding,
-} from "./diagnostics";
+import { type Diagnostic, normalizeFinding } from "./diagnostics";
+import type { ProjectSourceFile } from "./project-file-set";
 import type { ProjectProfile } from "./project-classifier";
+import { analyzeReactiveReads, type ReactiveReadModel } from "./reactive-read-model";
 import { analyzeReactiveSources, type ReactiveSourceModel } from "./reactive-source-model";
-import { asyncTrackingGapRule } from "./rules/async-tracking-gap";
-import { browserGlobalInSsrRule } from "./rules/browser-global-in-ssr";
-import { derivedStateInEffectRule } from "./rules/derived-state-in-effect";
-import { dynamicMapInJsxRule } from "./rules/dynamic-map-in-jsx";
-import { reactivePropSnapshotRule } from "./rules/reactive-prop-snapshot";
+import { getRules } from "./rule-catalog";
+import type { RulePack } from "./rule-catalog";
 import { analyzeTrackingScopes, type TrackingScopeModel } from "./tracking-scope-model";
-
-export const MVP_RULES = [
-  reactivePropSnapshotRule,
-  derivedStateInEffectRule,
-  asyncTrackingGapRule,
-  dynamicMapInJsxRule,
-  browserGlobalInSsrRule,
-];
-
-export type RulePack = "mvp" | "none";
 
 export type RuleContext = {
   project: ProjectProfile;
@@ -33,22 +16,8 @@ export type RuleContext = {
   sourceText: string;
   reactiveSources: ReactiveSourceModel;
   trackingScopes: TrackingScopeModel;
+  reactiveReads: ReactiveReadModel;
 };
-
-export type RunnableRule = RuleDefinition & {
-  check(context: RuleContext): Promise<RawFinding[]> | RawFinding[];
-};
-
-export function getRules(rulePack: RulePack = "mvp"): RunnableRule[] {
-  return rulePack === "none" ? [] : MVP_RULES;
-}
-
-export function findRule(ruleIdOrSlug: string): RunnableRule | null {
-  return (
-    MVP_RULES.find((rule) => rule.id === ruleIdOrSlug || rule.meta.docsSlug === ruleIdOrSlug) ??
-    null
-  );
-}
 
 export async function runRules({
   project,
@@ -56,15 +25,15 @@ export async function runRules({
   rulePack = "mvp",
 }: {
   project: ProjectProfile;
-  sourceFiles: string[];
+  sourceFiles: ProjectSourceFile[];
   rulePack?: RulePack;
 }): Promise<Diagnostic[]> {
   const diagnostics: Diagnostic[] = [];
   const rules = getRules(rulePack);
 
-  for (const filePath of sourceFiles) {
-    const sourceText = await readFile(filePath, "utf8");
-    const context = createRuleContext({ project, filePath, sourceText });
+  for (const sourceFile of sourceFiles) {
+    const sourceText = await readFile(sourceFile.filePath, "utf8");
+    const context = createRuleContext({ project, sourceFile, sourceText });
 
     for (const rule of rules) {
       const findings = await rule.check(context);
@@ -80,21 +49,23 @@ export async function runRules({
 
 function createRuleContext({
   project,
-  filePath,
+  sourceFile,
   sourceText,
 }: {
   project: ProjectProfile;
-  filePath: string;
+  sourceFile: ProjectSourceFile;
   sourceText: string;
 }): RuleContext {
   const reactiveSources = analyzeReactiveSources(sourceText);
+  const trackingScopes = analyzeTrackingScopes(sourceText, reactiveSources);
 
   return {
     project,
-    filePath,
-    relativeFilePath: relative(project.root, filePath),
+    filePath: sourceFile.filePath,
+    relativeFilePath: sourceFile.relativeFilePath,
     sourceText,
     reactiveSources,
-    trackingScopes: analyzeTrackingScopes(sourceText, reactiveSources),
+    trackingScopes,
+    reactiveReads: analyzeReactiveReads({ source: sourceText, reactiveSources, trackingScopes }),
   };
 }

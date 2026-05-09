@@ -1,10 +1,10 @@
 import type { Diagnostic } from "./diagnostics";
 import type { ChangedLines } from "./diff-filter";
 import { filterDiagnosticsToChangedLines } from "./diff-filter";
-import { collectSourceFiles } from "./file-walk";
+import { collectAnalyzableProjectFiles } from "./project-file-set";
 import { classifyProject, type ProjectProfile } from "./project-classifier";
 import { runRules } from "./rule-runner";
-import type { RulePack } from "./rule-runner";
+import type { RulePack } from "./rule-catalog";
 import { calculateScore, diagnosticFingerprint, type ScoreReport } from "./scoring";
 
 export type DoctorReport = {
@@ -32,10 +32,7 @@ export async function scanProject(
     throw new Error("Solid Doctor only scans projects with a solid-js dependency.");
   }
 
-  const sourceFiles = (await collectSourceFiles(projectRoot)).filter((filePath) => {
-    const relativeFilePath = filePath.replace(`${projectRoot}/`, "");
-    return !project.ignoredFiles.has(relativeFilePath);
-  });
+  const sourceFiles = await collectAnalyzableProjectFiles(project);
   const rawDiagnostics = await runRules({ project, sourceFiles, rulePack: options.rulePack });
   const unbaselinedDiagnostics = rawDiagnostics.filter(
     (diagnostic) => !options.baselineFingerprints?.has(diagnosticFingerprint(diagnostic)),

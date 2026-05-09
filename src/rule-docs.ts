@@ -1,4 +1,4 @@
-import { findRule, getRules, type RunnableRule } from "./rule-runner";
+import { assertRuleMetadataComplete, findRule, type RunnableRule } from "./rule-catalog";
 
 export function renderRuleExplanation(ruleIdOrSlug: string): string {
   const rule = findRule(ruleIdOrSlug);
@@ -41,19 +41,5 @@ export function renderRuleMetadata(rule: RunnableRule): string {
 }
 
 export function assertRuleDocsComplete(): void {
-  for (const rule of getRules()) {
-    const fields = [
-      rule.meta.description,
-      rule.meta.why,
-      rule.meta.badExample,
-      rule.meta.preferredExample,
-      rule.meta.remediation,
-      rule.meta.suppressionGuidance,
-      ...rule.meta.references,
-    ];
-
-    if (fields.some((field) => field.trim().length === 0)) {
-      throw new Error(`Rule ${rule.id} has incomplete docs metadata.`);
-    }
-  }
+  assertRuleMetadataComplete();
 }

@@ -9,7 +9,7 @@ Top-level fields:
 - `schemaVersion`: JSON report schema version.
 - `project`: serializable project profile summary.
 - `score`: overall score and category subscores.
-- `diagnostics`: normalized diagnostics plus stable fingerprints for baselines.
+- `diagnostics`: normalized diagnostics projected through the report projection module with stable fingerprints, locations, rule metadata, and issue-facing fields for reporters and TUI views.
 
 Baselines use the same fingerprints:
 

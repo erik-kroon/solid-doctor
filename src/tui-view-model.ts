@@ -1,5 +1,5 @@
 import type { Category, Confidence, Diagnostic, Severity } from "./diagnostics";
-import { findRule } from "./rule-runner";
+import { projectIssue, type ReportIssue } from "./report-projection";
 import type { ScoreReport } from "./scoring";
 
 export type TuiReport = {
@@ -52,8 +52,8 @@ export function createTuiViewModel({
   selectedIndex?: number;
 }): TuiViewModel {
   const issues = report.diagnostics
-    .filter((diagnostic) => matchesFilters(diagnostic, filters))
-    .map(toIssueViewModel);
+    .map(projectIssueToViewModel)
+    .filter((diagnostic) => matchesFilters(diagnostic, filters));
 
   return {
     score: report.score,
@@ -63,7 +63,7 @@ export function createTuiViewModel({
   };
 }
 
-function matchesFilters(diagnostic: Diagnostic, filters: IssueFilters): boolean {
+function matchesFilters(diagnostic: IssueViewModel, filters: IssueFilters): boolean {
   return (
     (!filters.severity || diagnostic.severity === filters.severity) &&
     (!filters.category || diagnostic.category === filters.category) &&
@@ -74,25 +74,27 @@ function matchesFilters(diagnostic: Diagnostic, filters: IssueFilters): boolean 
   );
 }
 
-function toIssueViewModel(diagnostic: Diagnostic): IssueViewModel {
-  const rule = findRule(diagnostic.ruleId);
+function projectIssueToViewModel(diagnostic: Diagnostic): IssueViewModel {
+  return toIssueViewModel(projectIssue(diagnostic));
+}
 
+function toIssueViewModel(issue: ReportIssue): IssueViewModel {
   return {
-    ruleId: diagnostic.ruleId,
-    severity: diagnostic.severity,
-    category: diagnostic.category,
-    confidence: diagnostic.confidence,
-    filePath: diagnostic.filePath,
-    line: diagnostic.line,
-    column: diagnostic.column,
-    fixable: diagnostic.fixable,
-    title: diagnostic.message,
-    explanation: rule?.meta.why ?? diagnostic.message,
-    remediation: diagnostic.remediation,
-    badExample: rule?.meta.badExample ?? "",
-    preferredExample: rule?.meta.preferredExample ?? "",
-    references: rule?.meta.references ?? [],
-    codeContext: `${diagnostic.filePath}:${diagnostic.line}:${diagnostic.column}`,
-    diffPreview: diagnostic.fix?.diff ?? null,
+    ruleId: issue.ruleId,
+    severity: issue.severity,
+    category: issue.category,
+    confidence: issue.confidence,
+    filePath: issue.filePath,
+    line: issue.line,
+    column: issue.column,
+    fixable: issue.fixable,
+    title: issue.message,
+    explanation: issue.explanation,
+    remediation: issue.remediation,
+    badExample: issue.badExample,
+    preferredExample: issue.preferredExample,
+    references: issue.references,
+    codeContext: issue.location,
+    diffPreview: issue.diffPreview,
   };
 }
