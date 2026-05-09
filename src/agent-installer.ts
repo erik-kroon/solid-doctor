@@ -51,7 +51,7 @@ function renderAgentGuidance(projectKind: string): string {
     "",
     `Project profile: ${projectKind}`,
     "",
-    "Follow Solid's fine-grained reactivity model. Avoid React-shaped Solid patterns:",
+    "Follow Solid's fine-grained reactivity, SSR, lifecycle, and rendering model:",
   ];
 
   for (const rule of getRules()) {

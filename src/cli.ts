@@ -1,5 +1,6 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -233,6 +234,13 @@ function renderReport(
 }
 
 async function runTui(reportPath: string, mode: "dashboard" | "inspect"): Promise<number> {
+  if (!existsSync("apps/tui/src/index.tsx")) {
+    console.error(
+      "The OpenTUI doctor and inspect commands currently require a source checkout. Use 'solid-doctor scan <project> --format json' from the npm package.",
+    );
+    return 2;
+  }
+
   const child = spawn("bun", ["apps/tui/src/index.tsx", reportPath, mode], {
     stdio: "inherit",
   });

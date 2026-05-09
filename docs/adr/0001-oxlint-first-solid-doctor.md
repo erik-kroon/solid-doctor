@@ -6,7 +6,7 @@ Accepted.
 
 ## Context
 
-Solid Doctor should catch Solid-specific correctness problems, especially React-shaped Solid that compiles but breaks fine-grained reactivity, lifecycle, owner, async, or SSR expectations.
+Solid Doctor should catch Solid-specific correctness and code-health problems across fine-grained reactivity, lifecycle, owner, async, rendering, and SSR expectations. React-shaped Solid is one important source of those problems, not the product boundary.
 
 The project should fit beside `oxlint` and `oxfmt`. Existing ESLint-oriented Solid rules are valuable prior art, but the product should not be architected as an ESLint-first plugin.
 

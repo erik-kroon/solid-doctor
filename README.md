@@ -1,22 +1,22 @@
 # Solid Doctor
 
-Oxlint-fast code health for Solid's reactive graph.
+Code health for Solid and SolidStart.
 
-Solid Doctor is a diagnostic CLI for Solid and SolidStart projects. It catches code that compiles, looks familiar to React developers, and still breaks Solid's fine-grained reactivity model.
+Solid Doctor is a diagnostic CLI for Solid and SolidStart projects. It scans codebases and reports a `0-100` health score with actionable findings for reactivity, rendering, async data, SSR, lifecycle and maintainability risks.
 
-> Your AI writes React-shaped Solid. Solid Doctor catches it.
+> Fast diagnostics for Solid reactivity, SSR and lifecycle bugs.
 
 ## Why It Exists
 
-Solid does not fail in the same way React fails.
+Solid code has its own failure modes.
 
-React code often gets slow because components render too much. Solid code more often gets wrong because a reactive value was read in the wrong place, copied into a stale local snapshot, derived inside an effect, accessed after an async boundary, used as a dynamic list with React-shaped `.map()`, or evaluated on the server where browser globals do not exist.
+Reactive values can be read in the wrong place, copied into stale local snapshots, derived inside effects, accessed after async boundaries, rendered with inefficient list patterns, leaked across owners or evaluated on the server where browser globals do not exist.
 
-Those mistakes are common when teams migrate from React, when Solid is adopted incrementally, and when coding agents generate Solid from React-heavy examples. Solid Doctor makes those mistakes visible, explainable, and enforceable.
+Those mistakes happen in hand-written Solid, migrated code and AI-generated changes. Solid Doctor makes them visible, explainable and enforceable across local development, CI, code review and coding-agent workflows.
 
 ## Current State
 
-This is a working TypeScript/Bun implementation of the Solid Doctor product loop:
+This is a working TypeScript implementation of the Solid Doctor product loop:
 
 - Scan a Solid project from one CLI command.
 - Classify Solid, SolidStart, Vite Solid, libraries, monorepos, generated files, tests, client-only paths, and SSR-capable files.
@@ -27,9 +27,10 @@ This is a working TypeScript/Bun implementation of the Solid Doctor product loop
 - Support incremental adoption through baselines, changed-line filtering, git diff mode, and score thresholds.
 - Explain rule guidance through `solid-doctor explain`.
 - Install managed agent guidance into `AGENTS.md` and Cursor rules.
-- Feed the optional OpenTUI dashboard and issue explorer from the same report projection used by reporters.
+- Build a Node-compatible npm package artifact that runs through `npx` and `bunx`.
+- Feed the optional source-checkout OpenTUI dashboard and issue explorer from the same report projection used by reporters.
 
-The package is not published yet. The repo is currently most useful as a product-quality prototype and engineering reference for a Solid-aware, Oxlint-oriented diagnostic tool.
+The package is prepared for npm publishing as `solid-doctor`, but is not published yet.
 
 ## Implemented Rule Pack
 
@@ -81,6 +82,31 @@ Diagnostics:
 
 ## Usage
 
+Package runners:
+
+```bash
+npx solid-doctor scan .
+bunx solid-doctor scan .
+```
+
+Local project install:
+
+```bash
+npm install --save-dev solid-doctor
+npx solid-doctor scan .
+```
+
+With Bun:
+
+```bash
+bun add --dev solid-doctor
+bunx solid-doctor scan .
+```
+
+Until the first npm publish, use the packed tarball smoke path from [docs/package-release.md](docs/package-release.md).
+
+## Local Development
+
 Install dependencies:
 
 ```bash
@@ -101,32 +127,39 @@ bun src/cli.ts scan fixtures/valid-solid
 bun src/cli.ts check fixtures/valid-solid
 ```
 
+Build the npm package artifact:
+
+```bash
+bun run build
+node dist/cli.js scan fixtures/valid-solid
+```
+
 Report formats:
 
 ```bash
-bun src/cli.ts scan fixtures/valid-solid --format json
-bun src/cli.ts scan fixtures/invalid-prop-snapshot --format markdown
-bun src/cli.ts scan fixtures/invalid-prop-snapshot --format sarif
-bun src/cli.ts scan fixtures/invalid-prop-snapshot --format github
+solid-doctor scan fixtures/valid-solid --format json
+solid-doctor scan fixtures/invalid-prop-snapshot --format markdown
+solid-doctor scan fixtures/invalid-prop-snapshot --format sarif
+solid-doctor scan fixtures/invalid-prop-snapshot --format github
 ```
 
 Incremental adoption and CI:
 
 ```bash
-bun src/cli.ts scan . --ci --diff main --min-score 80
-bun src/cli.ts scan . --write-baseline solid-doctor-baseline.json
-bun src/cli.ts scan . --baseline solid-doctor-baseline.json
-bun src/cli.ts scan . --changed-lines changed-lines.txt
+solid-doctor scan . --ci --diff main --min-score 80
+solid-doctor scan . --write-baseline solid-doctor-baseline.json
+solid-doctor scan . --baseline solid-doctor-baseline.json
+solid-doctor scan . --changed-lines changed-lines.txt
 ```
 
 Rule docs and agent guidance:
 
 ```bash
-bun src/cli.ts explain solid/reactive-prop-snapshot
-bun src/cli.ts install-agents . --target all --dry-run
+solid-doctor explain solid/reactive-prop-snapshot
+solid-doctor install-agents . --target all --dry-run
 ```
 
-Optional TUI surface:
+Optional TUI surface for source checkouts:
 
 ```bash
 bun src/cli.ts doctor fixtures/valid-solid
@@ -138,6 +171,7 @@ bun src/cli.ts inspect fixtures/invalid-prop-snapshot
 ```bash
 bun run test
 bun run check-types
+bun run build
 bun run --cwd apps/tui check-types
 ```
 
@@ -146,6 +180,14 @@ Focused scanner checks:
 ```bash
 bun run scan -- fixtures/valid-solid
 bun src/cli.ts scan fixtures/invalid-prop-snapshot
+```
+
+Package smoke checks:
+
+```bash
+bun pm pack --destination .context/package-smoke
+npm exec --package .context/package-smoke/solid-doctor-0.1.0.tgz -- solid-doctor scan fixtures/valid-solid
+bunx --package .context/package-smoke/solid-doctor-0.1.0.tgz solid-doctor scan fixtures/valid-solid
 ```
 
 ## Architecture
@@ -173,6 +215,9 @@ src/
   tui-view-model.ts              # optional TUI presentation model
   rules/
     *.ts                         # Solid-specific rules
+dist/
+  cli.js                         # bundled npm CLI artifact
+  types/                         # generated declarations for packaged runtime code
 ```
 
 The key interface is the rule runner:
@@ -192,6 +237,7 @@ For product shape, start with:
 - [docs/adr/0001-oxlint-first-solid-doctor.md](docs/adr/0001-oxlint-first-solid-doctor.md): Oxlint-first architecture decision.
 - [docs/rule-runner-boundary.md](docs/rule-runner-boundary.md): rule runner ownership and product-layer ownership.
 - [docs/reactive-models.md](docs/reactive-models.md): shared reactive source, read, and tracking models.
+- [docs/package-release.md](docs/package-release.md): package publishing checklist and source-release boundary.
 
 For engineering signal, the highest-value areas are:
 
@@ -202,7 +248,7 @@ For engineering signal, the highest-value areas are:
 
 ## Principles
 
-- Solid-native, not React-translated.
+- Solid-native, not a React lint clone.
 - Oxlint-first, not ESLint-first.
 - High signal over high volume.
 - Fix guidance over vague warnings.
@@ -212,4 +258,4 @@ For engineering signal, the highest-value areas are:
 
 ## License
 
-Not published yet.
+UNLICENSED.

@@ -8,11 +8,12 @@ Use this map to route future work quickly.
 - `CONTEXT.md`: domain vocabulary, product boundaries, rule quality bar.
 - `AGENTS.md`: operating guidance for coding agents.
 - GitHub issue `#1`: optimal end-state PRD.
-- GitHub issues `#4` through `#9`: remaining vertical slices.
+- GitHub issues: product slices and release-readiness work.
 
 ## CLI And Scan Flow
 
 - `src/cli.ts`: parses `solid-doctor scan <project>`, prints terminal output, owns exit codes.
+- `dist/cli.js`: generated npm CLI artifact; do not edit by hand.
 - `src/scan.ts`: classifies the project, collects files, runs rules, computes score.
 - `src/project-classifier.ts`: detects whether a target is a Solid project.
 - `src/file-walk.ts`: finds source files while skipping generated/build/dependency directories.
@@ -41,6 +42,7 @@ Use this map to route future work quickly.
 
 - `docs/adr/`: durable architecture decisions.
 - `docs/agents/workflow.md`: issue tracking and skill conventions.
+- `docs/package-release.md`: npm package publish checklist and source-release boundary.
 
 ## Local References
 
