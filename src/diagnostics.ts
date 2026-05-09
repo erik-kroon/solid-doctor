@@ -1,0 +1,103 @@
+export const CATEGORIES = {
+  reactivity: "reactivity",
+  ssr: "ssr",
+} as const;
+
+export const SEVERITIES = {
+  error: "error",
+  warning: "warning",
+} as const;
+
+export const CONFIDENCE = {
+  high: "high",
+  medium: "medium",
+  low: "low",
+} as const;
+
+export type Category = (typeof CATEGORIES)[keyof typeof CATEGORIES];
+export type Severity = (typeof SEVERITIES)[keyof typeof SEVERITIES];
+export type Confidence = (typeof CONFIDENCE)[keyof typeof CONFIDENCE];
+
+export type RuleMetadata = {
+  category: Category;
+  defaultSeverity: Severity;
+  confidence: Confidence;
+  docsSlug: string;
+  description: string;
+  why: string;
+  badExample: string;
+  preferredExample: string;
+  remediation: string;
+  suppressionGuidance: string;
+  references: string[];
+  fixable: boolean;
+};
+
+export type DiagnosticFix = {
+  safe: boolean;
+  diff: string;
+};
+
+export type RawFinding = {
+  line: number;
+  column: number;
+  message: string;
+  severity?: Severity;
+  confidence?: Confidence;
+  remediation?: string;
+  fix?: DiagnosticFix;
+};
+
+export type RuleDefinition = {
+  id: string;
+  meta: RuleMetadata;
+};
+
+export type NormalizerContext = {
+  relativeFilePath: string;
+};
+
+export type Diagnostic = {
+  ruleId: string;
+  category: Category;
+  severity: Severity;
+  confidence: Confidence;
+  docsSlug: string;
+  filePath: string;
+  line: number;
+  column: number;
+  message: string;
+  remediation: string;
+  fixable: boolean;
+  fix?: DiagnosticFix;
+};
+
+export function normalizeFinding({
+  rule,
+  finding,
+  context,
+}: {
+  rule: RuleDefinition;
+  finding: RawFinding;
+  context: NormalizerContext;
+}): Diagnostic {
+  const diagnostic: Diagnostic = {
+    ruleId: rule.id,
+    category: rule.meta.category,
+    severity: finding.severity ?? rule.meta.defaultSeverity,
+    confidence: finding.confidence ?? rule.meta.confidence,
+    docsSlug: rule.meta.docsSlug,
+    filePath: context.relativeFilePath,
+    line: finding.line,
+    column: finding.column,
+    message: finding.message,
+    remediation: finding.remediation ?? rule.meta.remediation,
+    fixable: rule.meta.fixable || Boolean(finding.fix),
+  };
+
+  if (finding.fix) {
+    diagnostic.fix = finding.fix;
+  }
+
+  return diagnostic;
+}

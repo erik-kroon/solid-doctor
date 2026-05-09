@@ -1,0 +1,10 @@
+{
+  "name": "classifier-monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "solid-js": "latest"
+  }
+}
