@@ -1,0 +1,189 @@
+name: Solid Doctor
+description: Run Solid Doctor in GitHub Actions with score output, summaries, and PR annotations.
+
+inputs:
+  directory:
+    description: Directory to scan.
+    required: false
+    default: "."
+  diff-base:
+    description: Git ref used for diff mode. Pull requests default to origin/<base branch> when omitted.
+    required: false
+    default: ""
+  format:
+    description: Summary format to write to the job summary.
+    required: false
+    default: "markdown"
+  min-score:
+    description: Minimum allowed Solid Doctor score.
+    required: false
+    default: "80"
+  fail-on:
+    description: Failure behavior. Use score-or-diagnostics, diagnostics, score, or never.
+    required: false
+    default: "score-or-diagnostics"
+  github-token:
+    description: GitHub token for optional PR comments.
+    required: false
+    default: ""
+  pr-comment:
+    description: Post or update a pull request comment with the Solid Doctor summary.
+    required: false
+    default: "false"
+  package:
+    description: Package spec passed to npx. Defaults to the published solid-doctor package.
+    required: false
+    default: "solid-doctor"
+
+outputs:
+  score:
+    description: Overall Solid Doctor score.
+    value: ${{ steps.scan.outputs.score }}
+  diagnostics-count:
+    description: Number of diagnostics after config, baseline, and diff filtering.
+    value: ${{ steps.scan.outputs.diagnostics-count }}
+  report:
+    description: Path to the JSON report file.
+    value: ${{ steps.scan.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve Solid Doctor diff base
+      id: resolve
+      shell: bash
+      env:
+        INPUT_DIFF_BASE: ${{ inputs.diff-base }}
+      run: |
+        set -euo pipefail
+        resolved_diff_base="$INPUT_DIFF_BASE"
+
+        if [[ -z "$resolved_diff_base" && -n "${GITHUB_BASE_REF:-}" ]]; then
+          resolved_diff_base="origin/${GITHUB_BASE_REF}"
+        fi
+
+        echo "diff-base=$resolved_diff_base" >> "$GITHUB_OUTPUT"
+
+    - name: Run Solid Doctor JSON report
+      id: scan
+      shell: bash
+      env:
+        INPUT_DIRECTORY: ${{ inputs.directory }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_MIN_SCORE: ${{ inputs.min-score }}
+        INPUT_PACKAGE: ${{ inputs.package }}
+        RESOLVED_DIFF_BASE: ${{ steps.resolve.outputs.diff-base }}
+      run: |
+        set +e
+        report_path="$RUNNER_TEMP/solid-doctor-report.json"
+        args=(scan "$INPUT_DIRECTORY" --format json)
+
+        if [[ -n "$RESOLVED_DIFF_BASE" ]]; then
+          resolved_diff_base="$RESOLVED_DIFF_BASE"
+          args+=(--diff "$resolved_diff_base")
+        fi
+
+        npx --yes "$INPUT_PACKAGE" "${args[@]}" > "$report_path"
+        scan_status=$?
+
+        if [[ "$scan_status" -eq 2 ]]; then
+          cat "$report_path"
+          exit 2
+        fi
+
+        score=$(node -e "const fs = require('fs'); const report = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); process.stdout.write(String(report.score.overall));" "$report_path")
+        diagnostics_count=$(node -e "const fs = require('fs'); const report = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); process.stdout.write(String(report.diagnostics.length));" "$report_path")
+
+        echo "score=$score" >> "$GITHUB_OUTPUT"
+        echo "diagnostics-count=$diagnostics_count" >> "$GITHUB_OUTPUT"
+        echo "report=$report_path" >> "$GITHUB_OUTPUT"
+
+        failed=0
+
+        case "$INPUT_FAIL_ON" in
+          never)
+            failed=0
+            ;;
+          diagnostics)
+            if [[ "$diagnostics_count" -gt 0 ]]; then failed=1; fi
+            ;;
+          score)
+            if [[ -n "$INPUT_MIN_SCORE" ]] && [[ "$score" -lt "$INPUT_MIN_SCORE" ]]; then failed=1; fi
+            ;;
+          score-or-diagnostics)
+            if [[ "$diagnostics_count" -gt 0 ]]; then failed=1; fi
+            if [[ -n "$INPUT_MIN_SCORE" ]] && [[ "$score" -lt "$INPUT_MIN_SCORE" ]]; then failed=1; fi
+            ;;
+          *)
+            echo "Expected fail-on to be one of: score-or-diagnostics, diagnostics, score, never." >&2
+            exit 2
+            ;;
+        esac
+
+        exit "$failed"
+
+    - name: Solid Doctor GitHub annotations
+      if: always()
+      shell: bash
+      env:
+        INPUT_DIRECTORY: ${{ inputs.directory }}
+        INPUT_PACKAGE: ${{ inputs.package }}
+        RESOLVED_DIFF_BASE: ${{ steps.resolve.outputs.diff-base }}
+      run: |
+        set +e
+        args=(scan "$INPUT_DIRECTORY" --format github)
+
+        if [[ -n "$RESOLVED_DIFF_BASE" ]]; then
+          resolved_diff_base="$RESOLVED_DIFF_BASE"
+          args+=(--diff "$resolved_diff_base")
+        fi
+
+        npx --yes "$INPUT_PACKAGE" "${args[@]}"
+        exit 0
+
+    - name: Solid Doctor summary
+      id: summary
+      if: always()
+      shell: bash
+      env:
+        INPUT_DIRECTORY: ${{ inputs.directory }}
+        INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_PACKAGE: ${{ inputs.package }}
+        RESOLVED_DIFF_BASE: ${{ steps.resolve.outputs.diff-base }}
+      run: |
+        set +e
+        summary_path="$RUNNER_TEMP/solid-doctor-summary.md"
+        args=(scan "$INPUT_DIRECTORY" --format "$INPUT_FORMAT")
+
+        if [[ -n "$RESOLVED_DIFF_BASE" ]]; then
+          resolved_diff_base="$RESOLVED_DIFF_BASE"
+          args+=(--diff "$resolved_diff_base")
+        fi
+
+        npx --yes "$INPUT_PACKAGE" "${args[@]}" > "$summary_path"
+        cat "$summary_path" >> "$GITHUB_STEP_SUMMARY"
+        echo "summary=$summary_path" >> "$GITHUB_OUTPUT"
+        exit 0
+
+    - name: Solid Doctor PR comment
+      if: ${{ always() && inputs.pr-comment == 'true' && github.event_name == 'pull_request' }}
+      uses: actions/github-script@v7
+      env:
+        SUMMARY_PATH: ${{ steps.summary.outputs.summary }}
+        SCORE: ${{ steps.scan.outputs.score }}
+      with:
+        github-token: ${{ inputs.github-token || github.token }}
+        script: |
+          const fs = require("fs");
+          const marker = "<!-- solid-doctor-report -->";
+          const body = `${marker}\n### Solid Doctor\n\nScore: ${process.env.SCORE}/100\n\n${fs.readFileSync(process.env.SUMMARY_PATH, "utf8")}`;
+          const { owner, repo } = context.repo;
+          const issue_number = context.payload.pull_request.number;
+          const comments = await github.rest.issues.listComments({ owner, repo, issue_number, per_page: 100 });
+          const existing = comments.data.find((comment) => comment.body?.includes(marker));
+
+          if (existing) {
+            await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+          } else {
+            await github.rest.issues.createComment({ owner, repo, issue_number, body });
+          }

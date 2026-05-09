@@ -144,6 +144,17 @@ solid-doctor scan fixtures/invalid-prop-snapshot --format sarif
 solid-doctor scan fixtures/invalid-prop-snapshot --format github
 ```
 
+GitHub Action:
+
+```yaml
+- uses: erik-kroon/solid-doctor@main
+  id: solid-doctor
+  with:
+    directory: .
+    diff-base: origin/${{ github.base_ref }}
+    min-score: 80
+```
+
 Incremental adoption and CI:
 
 ```bash
@@ -267,6 +278,7 @@ For product shape, start with:
 - [docs/rule-runner-boundary.md](docs/rule-runner-boundary.md): rule runner ownership and product-layer ownership.
 - [docs/reactive-models.md](docs/reactive-models.md): shared reactive source, read, and tracking models.
 - [docs/package-release.md](docs/package-release.md): package publishing checklist and source-release boundary.
+- [docs/github-action.md](docs/github-action.md): GitHub Action usage, inputs, outputs, and PR comment behavior.
 
 For engineering signal, the highest-value areas are:
 
