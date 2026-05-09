@@ -11,6 +11,7 @@ export function renderTerminalReport(report: DoctorReport): string {
 
   if (projection.issues.length === 0) {
     lines.push("", "No Solid-specific diagnostics found.");
+    appendSuppressionHints(lines, projection.suppressionHints);
     appendClassifierMessages(lines, report.classifierMessages);
     return lines.join("\n");
   }
@@ -26,6 +27,7 @@ export function renderTerminalReport(report: DoctorReport): string {
     );
   }
 
+  appendSuppressionHints(lines, projection.suppressionHints);
   appendClassifierMessages(lines, report.classifierMessages);
 
   return lines.join("\n");
@@ -106,7 +108,23 @@ function toJsonProjection(projection: ReportProjection) {
     project: projection.project,
     score: projection.score,
     diagnostics: projection.issues,
+    suppressionHints: projection.suppressionHints,
   };
+}
+
+function appendSuppressionHints(
+  lines: string[],
+  suppressionHints: ReportProjection["suppressionHints"],
+): void {
+  if (suppressionHints.length === 0) {
+    return;
+  }
+
+  lines.push("", "Suppressions:");
+
+  for (const hint of suppressionHints) {
+    lines.push(`- ${hint.filePath}:${hint.line}:${hint.column} ${hint.message}`);
+  }
 }
 
 function toSarifReport(report: DoctorReport) {

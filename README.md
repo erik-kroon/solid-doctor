@@ -25,6 +25,7 @@ This is a working TypeScript implementation of the Solid Doctor product loop:
 - Produce a `0-100` health score with category subscores.
 - Report to terminal, JSON, Markdown, SARIF, and GitHub annotations.
 - Support incremental adoption through baselines, changed-line filtering, git diff mode, and score thresholds.
+- Support project config, repository ignores, per-rule/file ignores, and next-line suppressions.
 - Explain rule guidance through `solid-doctor explain`.
 - Install managed agent guidance into `AGENTS.md` and Cursor rules.
 - Build a Node-compatible npm package artifact that runs through `npx` and `bunx`.
@@ -152,10 +153,37 @@ solid-doctor scan . --baseline solid-doctor-baseline.json
 solid-doctor scan . --changed-lines changed-lines.txt
 ```
 
+Configuration and suppressions:
+
+```json
+{
+  "ignore": {
+    "rules": ["solid/browser-global-in-ssr"],
+    "files": ["src/legacy/**"]
+  },
+  "overrides": [
+    {
+      "files": ["src/routes/admin/**"],
+      "ignore": {
+        "rules": ["solid/dynamic-map-in-jsx"]
+      }
+    }
+  ]
+}
+```
+
+Save that as `solid-doctor.config.json` or under the `solidDoctor` package.json key. File ignores also honor `.solid-doctorignore` and non-negated `.gitignore` entries. Inline suppressions use a named next-line directive:
+
+```tsx
+// solid-doctor-disable-next-line solid/browser-global-in-ssr
+const title = document.title;
+```
+
 Rule docs and agent guidance:
 
 ```bash
 solid-doctor explain solid/reactive-prop-snapshot
+solid-doctor explain suppression
 solid-doctor install-agents . --target all --dry-run
 ```
 
@@ -201,6 +229,7 @@ src/
   project-classifier.ts          # project and file classification
   project-file-set.ts            # analyzable file selection
   file-walk.ts                   # source discovery
+  adoption-config.ts             # config, ignores, suppressions, and adoption filtering
   rule-runner.ts                 # rule execution boundary
   diagnostics.ts                 # normalized diagnostic contract and identity
   reactive-source-model.ts       # shared reactive source analysis

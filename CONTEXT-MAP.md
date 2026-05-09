@@ -17,6 +17,7 @@ Use this map to route future work quickly.
 - `src/scan.ts`: classifies the project, collects files, runs rules, computes score.
 - `src/project-classifier.ts`: detects whether a target is a Solid project.
 - `src/file-walk.ts`: finds source files while skipping generated/build/dependency directories.
+- `src/adoption-config.ts`: loads `solid-doctor.config.json`, package `solidDoctor`, repository ignores, and inline suppressions before baselines, changed-line filtering, scoring, and reporting.
 
 ## Rule System
 

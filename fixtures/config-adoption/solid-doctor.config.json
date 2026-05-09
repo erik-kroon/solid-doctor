@@ -1,0 +1,14 @@
+{
+  "ignore": {
+    "rules": ["solid/dynamic-map-in-jsx"],
+    "files": ["src/ignored/**"]
+  },
+  "overrides": [
+    {
+      "files": ["src/App.tsx"],
+      "ignore": {
+        "rules": ["solid/browser-global-in-ssr"]
+      }
+    }
+  ]
+}

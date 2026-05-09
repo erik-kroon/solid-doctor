@@ -1,0 +1,7 @@
+{
+  "name": "config-adoption-fixture",
+  "dependencies": {
+    "@solidjs/start": "latest",
+    "solid-js": "latest"
+  }
+}

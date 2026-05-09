@@ -1,0 +1,12 @@
+{
+  "name": "package-config-adoption-fixture",
+  "solidDoctor": {
+    "ignore": {
+      "rules": ["solid/browser-global-in-ssr"]
+    }
+  },
+  "dependencies": {
+    "@solidjs/start": "latest",
+    "solid-js": "latest"
+  }
+}

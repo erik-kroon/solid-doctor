@@ -60,6 +60,79 @@ test("baseline suppresses known diagnostics without changing new fingerprints", 
   }
 });
 
+test("config file ignores rules, files, and rule/file combinations before scoring", async () => {
+  const report = await scanProject("fixtures/config-adoption");
+
+  assert.deepEqual(
+    report.diagnostics.map((diagnostic) => diagnostic.ruleId).sort(),
+    [
+      "solid/async-no-fetch-in-effect",
+      "solid/async-tracking-gap",
+      "solid/derived-state-in-effect",
+    ],
+  );
+  assert.equal(
+    report.diagnostics.some(
+      (diagnostic) =>
+        diagnostic.filePath.startsWith("src/ignored/") ||
+        diagnostic.filePath.startsWith("src/doctor-ignored/"),
+    ),
+    false,
+  );
+});
+
+test("package solidDoctor config can disable a rule globally", async () => {
+  const report = await scanProject("fixtures/package-config-adoption");
+
+  assert.equal(
+    report.diagnostics.some((diagnostic) => diagnostic.ruleId === "solid/browser-global-in-ssr"),
+    false,
+  );
+  assert.equal(report.diagnostics.length, 4);
+});
+
+test("inline suppressions apply only named rules on the next line and report misses", async () => {
+  const report = await scanProject("fixtures/suppression-adoption");
+
+  assert.deepEqual(
+    report.diagnostics.map((diagnostic) => diagnostic.ruleId).sort(),
+    [
+      "solid/async-no-fetch-in-effect",
+      "solid/async-tracking-gap",
+      "solid/derived-state-in-effect",
+    ],
+  );
+  assert.equal(report.suppressionHints.length, 2);
+  assert.match(report.suppressionHints[0]?.message ?? "", /did not match a diagnostic/);
+});
+
+test("JSON output includes suppression hint data when relevant", async () => {
+  await assert.rejects(
+    execFileAsync("bun", [
+      "src/cli.ts",
+      "scan",
+      "fixtures/suppression-adoption",
+      "--format",
+      "json",
+    ]),
+    (error) => {
+      const report = JSON.parse((error as RejectedExecFileError).stdout ?? "");
+
+      assert.equal(report.suppressionHints.length, 2);
+      assert.equal(report.suppressionHints[0].filePath, "src/App.tsx");
+      assert.equal(report.suppressionHints[0].kind, "unused");
+      return true;
+    },
+  );
+});
+
+test("explain includes suppression miss guidance", async () => {
+  const { stdout } = await execFileAsync("bun", ["src/cli.ts", "explain", "suppression"]);
+
+  assert.match(stdout, /solid-doctor-disable-next-line/);
+  assert.match(stdout, /unused suppression/);
+});
+
 test("changed-line filtering keeps only diagnostics introduced in selected lines", async () => {
   const report = await scanProject("fixtures/invalid-mvp-rule-pack", {
     changedLines: new Map([["src/App.tsx", new Set([11])]]),
