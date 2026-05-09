@@ -2,7 +2,7 @@
   "name": "solid-doctor",
   "version": "0.1.1",
   "description": "Code health diagnostics for Solid and SolidStart projects.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "bin": {
     "solid-doctor": "./dist/cli.js"
   },
