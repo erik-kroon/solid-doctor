@@ -43,6 +43,8 @@ For optional TUI changes, also run:
 bun run --cwd apps/tui check-types
 ```
 
+OpenTUI verification is terminal verification, not browser verification. Do not use Playwright, MCP browser checks, HTML previews, or browser screenshots to claim OpenTUI behavior works. Use the installed `opentui` skill for API guidance, `bun test` for logic and layout coverage, and a renderer-level or PTY snapshot harness with fixed terminal size and mocked input for interactive behavior. If no such harness exists, report terminal UI behavior as unverified.
+
 For CLI behavior changes, also run at least one clean and one diagnostic fixture:
 
 ```bash

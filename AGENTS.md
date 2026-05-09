@@ -19,6 +19,14 @@ Solid Doctor is an Oxlint-first code-health tool for Solid and SolidStart projec
 
 All source and tests should be TypeScript. Do not add `.js`, `.mjs`, or `.cjs` files for repo code unless a tool integration genuinely requires generated JavaScript.
 
+## OpenTUI Work
+
+- Use the installed `opentui` skill for OpenTUI API and pattern guidance.
+- Do not use Playwright, MCP browser checks, HTML previews, or browser screenshots as verification for OpenTUI behavior.
+- For OpenTUI logic and layout, use Bun tests and OpenTUI renderer-level tests where possible.
+- For real terminal behavior, use deterministic verification through mocked stdin/stdout/clock or a PTY snapshot harness with a fixed terminal size and mocked input.
+- If no renderer-level or PTY harness exists, say terminal UI behavior was not visually verified. Do not substitute type checks, unit tests, or raw stdout string checks for interactive TUI verification.
+
 ## Architecture Rules
 
 - Keep the CLI product layer separate from rule detection.
