@@ -1,6 +1,7 @@
 import type { ReactiveSourceModel } from "./reactive-source-model";
 import type { TrackingScope, TrackingScopeModel } from "./tracking-scope-model";
-import { escapeRegExp, lineEndAt, lineStartAt, positionAt } from "./rules/rule-utils";
+import { escapeRegExp } from "./rules/rule-utils";
+import { lineEndAt, lineStartAt, positionAt } from "./source-location";
 
 export type ReactiveReadKind = "prop" | "signal" | "store" | "memo" | "resource";
 

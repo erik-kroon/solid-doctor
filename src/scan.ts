@@ -1,11 +1,11 @@
-import type { Diagnostic } from "./diagnostics";
+import { diagnosticFingerprint, type Diagnostic } from "./diagnostics";
 import type { ChangedLines } from "./diff-filter";
 import { filterDiagnosticsToChangedLines } from "./diff-filter";
 import { collectAnalyzableProjectFiles } from "./project-file-set";
 import { classifyProject, type ProjectProfile } from "./project-classifier";
 import { runRules } from "./rule-runner";
 import type { RulePack } from "./rule-catalog";
-import { calculateScore, diagnosticFingerprint, type ScoreReport } from "./scoring";
+import { calculateScore, type ScoreReport } from "./scoring";
 
 export type DoctorReport = {
   project: ProjectProfile;

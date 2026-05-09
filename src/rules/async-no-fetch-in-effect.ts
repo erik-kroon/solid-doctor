@@ -1,6 +1,6 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
 import type { RunnableRule } from "../rule-catalog";
-import { positionAt } from "./rule-utils";
+import { positionAt } from "../source-location";
 
 const FETCH_PATTERN = /\bfetch\s*\(/;
 

@@ -7,6 +7,7 @@ import { join, resolve } from "node:path";
 import { type AgentTarget, installAgentInstructions } from "./agent-installer";
 import { readBaseline, writeBaseline } from "./baseline";
 import { loadGitChangedLines, readChangedLinesFile } from "./diff-filter";
+import { projectDoctorReport } from "./report-projection";
 import {
   renderGithubAnnotations,
   renderJsonReport,
@@ -83,7 +84,7 @@ if (command === "doctor" || command === "inspect") {
 
     const tempDir = await mkdtemp(join(tmpdir(), "solid-doctor-tui-"));
     const reportPath = join(tempDir, "report.json");
-    await writeFile(reportPath, renderJsonReport(report));
+    await writeFile(reportPath, `${JSON.stringify(projectDoctorReport(report), null, 2)}\n`);
     process.exit(await runTui(reportPath, command === "inspect" ? "inspect" : "dashboard"));
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));

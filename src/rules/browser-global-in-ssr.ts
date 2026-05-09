@@ -1,6 +1,6 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
 import type { RunnableRule } from "../rule-catalog";
-import { positionAt } from "./rule-utils";
+import { positionAt } from "../source-location";
 
 const BROWSER_GLOBAL_PATTERN = /\b(window|document|localStorage|sessionStorage|navigator)\b/g;
 

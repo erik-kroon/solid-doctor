@@ -1,7 +1,8 @@
 import { CATEGORIES, CONFIDENCE, SEVERITIES, type RawFinding } from "../diagnostics";
 import { localNameFor } from "../reactive-source-model";
 import type { RunnableRule } from "../rule-catalog";
-import { escapeRegExp, positionAt } from "./rule-utils";
+import { positionAt } from "../source-location";
+import { escapeRegExp } from "./rule-utils";
 
 export const renderStableChildrenRule: RunnableRule = {
   id: "solid/render-stable-children",
